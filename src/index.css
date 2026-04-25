@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-brand-primary: #0C488A;
+  --color-brand-secondary: #454E96;
+  --color-brand-accent: #7A3A94;
+}
+
+@layer base {
+  :root {
+    --bg-main: #F8F7F7;
+    --bg-card: #ffffff;
+    --text-primary: #141414;
+    --text-secondary: #353335;
+    --border-color: #E9E9E9;
+    --input-bg: #ffffff;
+    --accent-color: #454E96;
+    --accent-purple: #7A3A94;
+    --color-success: #22c55e;
+    --color-error: #ef4444;
+  }
+
+  .dark {
+    --bg-main: #121212;
+    --bg-card: #1E1E1E;
+    --text-primary: #F8F7F7;
+    --text-secondary: #E9E9E9;
+    --border-color: #333333;
+    --input-bg: #1A1A1A;
+    --accent-color: #454E96;
+    --accent-purple: #7A3A94;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    @apply transition-all duration-300 ease-in-out font-sans;
+  }
+
+  * {
+    @apply transition-colors duration-300 ease-in-out;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #E9E9E9; border-radius: 10px; }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #353335; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D0D0D0; }
