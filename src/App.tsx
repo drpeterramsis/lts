@@ -33,7 +33,6 @@ import type { Employee } from './types';
 import { loadEmployees as fetchEmployees, saveToGitHub } from './utils/githubSync';
 import { Footer } from './components/Footer';
 import { SearchEngine } from './components/SearchEngine';
-import { DrillDown } from './components/DrillDown';
 
 const getRole = (employeeNumber: string): 'employee' | 'facilitator' => {
   if (employeeNumber === "000000") return "facilitator";
@@ -47,7 +46,7 @@ export default function App() {
   const [foundEmployee, setFoundEmployee] = useState<Employee | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'drill' | 'search' | 'map' | 'stats'>('map');
+  const [activeTab, setActiveTab] = useState<'search' | 'map' | 'stats'>('map');
   
   // New States
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -480,12 +479,6 @@ export default function App() {
                        {(user.role === 'facilitator' || user.role === 'superuser') && (
                          <>
                            <button 
-                             onClick={() => setActiveTab('drill')}
-                             className={`h-full px-4 text-sm font-bold flex items-center transition-all ${activeTab === 'drill' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
-                           >
-                             Drill-Down
-                           </button>
-                           <button 
                              onClick={() => setActiveTab('search')}
                              className={`h-full px-4 text-sm font-bold flex items-center transition-all ${activeTab === 'search' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
                            >
@@ -515,14 +508,6 @@ export default function App() {
                  >
                    Map
                  </button>
-                 {can('drillDown', user.role) && (
-                   <button 
-                     onClick={() => setActiveTab('drill')}
-                     className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'drill' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
-                   >
-                     Drill-Down
-                   </button>
-                 )}
                  {can('search', user.role) && (
                    <button 
                      onClick={() => setActiveTab('search')}
@@ -665,16 +650,6 @@ export default function App() {
                       {activeTab === 'map' ? (
                        <motion.div key="map" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                           <SeatingMap employees={employees} loggedInEmployee={user} userRole={user.role} />
-                       </motion.div>
-                      ) : activeTab === 'drill' ? (
-                       <motion.div key="drill" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                          <div className="space-y-6">
-                             <div className="pl-2">
-                                <h3 className="text-xl font-display font-black tracking-tight">Wave Drill-Down</h3>
-                                <p className="text-sm text-[var(--text-secondary)]">Browse institutional structure from Wave to individual Teams.</p>
-                             </div>
-                             <DrillDown data={employees} onEdit={openEditModal} onDelete={openDeleteModal} userRole={user.role} />
-                          </div>
                        </motion.div>
                       ) : activeTab === 'stats' ? (
                         <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>

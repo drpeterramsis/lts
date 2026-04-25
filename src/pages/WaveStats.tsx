@@ -3,7 +3,7 @@ import { Employee } from '../types';
 import { Pencil, Trash2, ArrowUpRight } from 'lucide-react';
 import { getTeamColor } from '../components/SearchEngine';
 import { sk } from '../utils/safeKey';
-import { WAVE_1, WAVE_2, UNIQUE_TEAMS } from '../constants/waves';
+import { WAVE_1, WAVE_2, UNIQUE_TEAMS, WAVE_LABELS, matchWave } from '../constants/waves';
 
 interface WaveStatsProps {
   employees: Employee[];
@@ -35,15 +35,15 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
   // ROW 1: Summary Stats
   const stats = useMemo(() => {
     const total = employees.length;
-    const wave1 = employees.filter(e => e.wave === WAVE_1).length;
-    const wave2 = employees.filter(e => e.wave === WAVE_2).length;
+    const wave1 = employees.filter(e => matchWave(e.wave, WAVE_1)).length;
+    const wave2 = employees.filter(e => matchWave(e.wave, WAVE_2)).length;
     const activeClusters = uniqueClusters.length;
     return { total, wave1, wave2, activeClusters };
   }, [employees, uniqueClusters]);
 
   // Row 2 Data: Wave Grid
   const buildWaveGrid = (allEmps: Employee[], targetWave: string) => {
-    const waveEmps = allEmps.filter(e => e.wave === targetWave);
+    const waveEmps = allEmps.filter(e => matchWave(e.wave, targetWave));
     const grid: Record<string, Record<string, Employee[]>> = {};
     waveEmps.forEach(emp => {
       const c = String(emp.cluster || '0');
@@ -175,10 +175,11 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
               ))}
               <tr className="bg-[#EEF2FF] font-bold text-center">
                 <td className="p-3">Grand Total</td>
-                <td className="p-3">{UNIQUE_TEAMS.reduce((acc, t) => acc + Object.values(clusterTotals).reduce((sum, c) => sum + (c[t] || 0), 0), 0)}</td>
-                <td className="p-3">{UNIQUE_TEAMS.reduce((acc, t) => acc + Object.values(clusterTotals).reduce((sum, c) => sum + (c[t] || 0), 0), 0)}</td>
-                <td className="p-3">{UNIQUE_TEAMS.reduce((acc, t) => acc + Object.values(clusterTotals).reduce((sum, c) => sum + (c[t] || 0), 0), 0)}</td>
-                <td className="p-3">{UNIQUE_TEAMS.reduce((acc, t) => acc + Object.values(clusterTotals).reduce((sum, c) => sum + (c[t] || 0), 0), 0)}</td>
+                {UNIQUE_TEAMS.map(t => (
+                  <td key={sk("gt", t)} className="p-3">
+                    {Object.values(clusterTotals).reduce((sum, c: any) => sum + (c[t] || 0), 0)}
+                  </td>
+                ))}
                 <td className="p-3">{stats.total}</td>
               </tr>
             </tbody>

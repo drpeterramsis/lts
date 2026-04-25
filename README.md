@@ -43,6 +43,17 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.015 - Fixed: wave filter now uses time-based matching (09:30/12:30) via matchWave()
+           Fixed: normalizeEmployee normalizes wave to exact constant
+           Fixed: facilitator map now shows all clusters and tables
+           Fixed: stats Wave1/Wave2 counts now correct (not zero)
+           Fixed: stats table grid shows real member counts
+           Map: table cards compact, 4 per row including mobile
+           Map: member count shown on each table card
+           Map: star ⭐ replaces YOU ARE HERE text badge
+           Map: clicking wrong table as employee = silent (no toast)
+           DrillDown: removed completely
+           All fixes retain previous key/NaN/wave fixes
 v2.0.014 - Fixed: ReferenceError for uniqueClusters (derived within components)
            Fixed: duplicate keys in lists (replaced with sk() utility)
            Fixed: facilitator login (000000) crashes and search issues

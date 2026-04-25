@@ -4,7 +4,7 @@ import { MapPin } from 'lucide-react';
 import { Employee } from '../types';
 import { getTeamColor } from './SearchEngine';
 import { sk } from '../utils/safeKey';
-import { WAVE_1, WAVE_2, WAVE_LABELS } from '../constants/waves';
+import { WAVE_1, WAVE_2, WAVE_LABELS, matchWave } from '../constants/waves';
 
 interface SeatingMapProps {
   employees: Employee[];
@@ -36,7 +36,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
   const [selectedTeam, setSelectedTeam] = useState<{cluster: string, team: string, members: Employee[]} | null>(null);
 
   const waveEmployees = useMemo(() => 
-    employees.filter(e => e.wave === selectedWave), 
+    employees.filter(e => matchWave(e.wave, selectedWave)), 
     [employees, selectedWave]
   );
 
@@ -155,13 +155,16 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
         sortedClusters.map(cluster => (
           <div key={sk("cl", cluster)} className="w-full">
             <h3 className="inline-block bg-[#7A3A94] text-white rounded-[20px] px-4 py-1 font-bold text-[13px] mb-4">Cluster {cluster}</h3>
-            <div className="flex flex-wrap gap-4">
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 8,
+              marginBottom: 24
+            }}>
               {clusterGroups[cluster].map((table) => {
                 const teamMembers = table.members;
                 const isUserAtTable = isUserTable(table);
-                
                 const canOpen = isUserAtTable || isFacilitator;
-                
                 const teamColor = getTeamColor(table.team);
                 
                 return (
@@ -170,26 +173,21 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                     onClick={() => {
                         if (canOpen) {
                             setSelectedTeam({ cluster: table.cluster, team: table.team, members: teamMembers });
-                        } else {
-                            showToast("You can only view your own table.");
                         }
                     }}
-                    className={`min-w-[220px] bg-[#F8F7F7] border border-[#D0D0D0] rounded-[10px] p-4 relative overflow-hidden transition-all ${canOpen ? 'cursor-pointer hover:border-[#454E96]' : ''}`}
+                    className={`bg-white border rounded-[10px] p-2 relative transition-all ${canOpen ? 'cursor-pointer hover:border-[#454E96]' : 'border-[#D0D0D0]'}`}
                     style={isUserAtTable ? { 
                       border: '2px solid transparent', 
-                      backgroundImage: 'linear-gradient(#F8F7F7, #F8F7F7), var(--gradient-brand)', 
+                      backgroundImage: 'linear-gradient(white, white), linear-gradient(90deg, #0C488A, #454E96, #7A3A94, #D579A4)', 
                       backgroundClip: 'padding-box, border-box', 
                       backgroundOrigin: 'border-box', 
-                      boxShadow: '0 0 16px rgba(68, 78, 150, 0.25)' 
+                      boxShadow: '0 0 12px rgba(68, 78, 150, 0.25)' 
                     } : {}}
                   >
-                    <div className="relative">
-                      {isUserAtTable && <div className="absolute top-0 right-0 text-[#D579A4] text-[10px] font-bold px-2 py-0.5" style={{ color: '#D579A4' }}>YOU ARE HERE</div>}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }}></span>
-                        <h4 className="font-bold text-[14px]">{table.team}</h4>
-                      </div>
-                      <p className="text-[12px] text-[var(--text-secondary)]">{teamMembers.length} members</p>
+                    <div className="flex flex-col items-center">
+                      {isUserAtTable && <div className="absolute top-1 right-1 text-[12px]">⭐</div>}
+                      <h4 className="font-extrabold text-[18px] leading-tight" style={{ color: teamColor }}>{table.team}</h4>
+                      <p className="text-[11px] text-[#6B7280] mt-1 text-center font-medium leading-none">{teamMembers.length} members</p>
                     </div>
                   </div>
                 );

@@ -1,5 +1,6 @@
 import { Employee } from "../types";
 import bundledEmployees from '../data/employees_lts.json';
+import { WAVE_1, WAVE_2 } from '../constants/waves';
 
 function normalizeEmployee(raw: any): Employee | null {
     if (!raw || typeof raw !== "object") return null;
@@ -7,14 +8,20 @@ function normalizeEmployee(raw: any): Employee | null {
     // IMPORTANT: use String() directly — never parseInt/parseFloat
     const cluster = String(raw.cluster ?? raw["Cluster"] ?? "").trim() || "0";
     const team = String(raw.team ?? raw["Team"] ?? "").trim().toUpperCase() || "X";
+    const rawWave = String(raw.wave ?? raw["Wave"] ?? "").trim();
+
+    // Normalize wave to exact constant value
+    let wave = rawWave;
+    if (rawWave.includes("09:30")) wave = WAVE_1;
+    else if (rawWave.includes("12:30")) wave = WAVE_2;
 
     return {
-        id:      String(raw.id ?? "").trim(),
-        name:    String(raw.name ?? "").trim(),
-        email:   String(raw.email ?? "").trim(),
+        id:      String(raw.id ?? raw["Employee ID"] ?? "").trim(),
+        name:    String(raw.name ?? raw["Name"] ?? "").trim(),
+        email:   String(raw.email ?? raw["Email"] ?? "").trim(),
         team,
         cluster,
-        wave:    String(raw.wave ?? "").trim(),
+        wave,
     };
 }
 

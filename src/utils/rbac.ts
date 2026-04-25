@@ -3,7 +3,6 @@ import { EmployeeRole } from "../types";
 export type AccessAction =
   | 'search'
   | 'stats'
-  | 'drillDown'
   | 'allWaves'
   | 'anyTableOpen'
   | 'editEmployee'
@@ -17,7 +16,6 @@ export type AccessAction =
 const ACCESS: Record<AccessAction, EmployeeRole[]> = {
   search: ['facilitator'],
   stats: ['facilitator'],
-  drillDown: ['facilitator'],
   allWaves: ['facilitator'],
   anyTableOpen: ['facilitator'],
   editEmployee: ['facilitator'],
