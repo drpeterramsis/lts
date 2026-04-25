@@ -1,6 +1,6 @@
-# Limitless Training Simulation (v2.0.006)
+# Limitless Training Simulation (v2.0.010)
 
-A professional, secure employee dashboard for the Limitless Training Simulation (LTS). This application allows members to sign in using their Employee ID to view their current wave assignment, cluster, and team details.
+ A professional, secure employee dashboard for the Limitless Training Simulation (LTS). This application allows members to sign in using their Employee ID to view their current wave assignment, cluster, and team details.
 
 ## Features
 - **Secure Login**: Authentication against a centralized member data array.
@@ -43,7 +43,21 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
-v2.0.006 - Fixed: employee loading via bundled Vite import (no more 404s)
+v2.0.010 - Fixed: NaN duplicate key in SeatingMap (root cause: parseInt on cluster)
+           Fixed: sk() helper added — sanitizes all key values
+           Fixed: normalizeEmployee uses String() never parseInt/parseFloat
+           Fixed: tableGroups uses cluster__team as groupKey (double underscore)
+           Fixed: clusterGroups sorted with Number() + isNaN() guard
+           Fixed: all .map() renders in SeatingMap use sk() for keys
+v2.0.009 - Fixed: NaN key caused by undefined cluster/team values
+           Fixed: duplicate keys in SeatingMap table list
+           Fixed: safeKey() utility added for guaranteed unique keys
+           Fixed: tableGroups uses cluster||team as group key
+           Fixed: clusterGroups deduplication and sort
+           Fixed: normalizeEmployee returns fallback for missing fields
+           Fixed: null employee records filtered after normalization
+           Added: SeatingMap debug logging (remove after confirmed)
+ v2.0.006 - Fixed: employee loading via bundled Vite import (no more 404s)04s)
            Fixed: GitHub API path corrected to src/data/employees_lts.json
            Fixed: removed broken /data/employees_lts.json fallback
            Fixed: login title color changed to light grey for visibility

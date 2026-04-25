@@ -10,8 +10,8 @@ export const WAVES = {
 
 export const STANDARD_WAVES = [WAVES.WAVE_1, WAVES.WAVE_2];
 
-export const parseWave = (wave: string) => {
-  const parts = wave.split('⏰');
+export const parseWave = (wave: string | null | undefined) => {
+  const parts = (wave || '').split('⏰');
   const datePart = parts[0]?.trim() || '';
   const timePart = parts[1]?.trim() || '';
   return { date: datePart, time: timePart };

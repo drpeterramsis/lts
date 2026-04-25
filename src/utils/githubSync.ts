@@ -1,14 +1,20 @@
 import { Employee } from "../types";
 import bundledEmployees from '../data/employees_lts.json';
 
-function normalizeEmployee(raw: any): Employee {
+function normalizeEmployee(raw: any): Employee | null {
+    if (!raw || typeof raw !== "object") return null;
+
+    // IMPORTANT: use String() directly — never parseInt/parseFloat
+    const cluster = String(raw.cluster ?? raw["Cluster"] ?? "").trim() || "0";
+    const team = String(raw.team ?? raw["Team"] ?? "").trim().toUpperCase() || "X";
+
     return {
-        id:      String(raw.id || "").trim(),
-        name:    String(raw.name || "").trim(),
-        email:   String(raw.email || "").trim(),
-        team:    String(raw.team || "").trim().toUpperCase(),
-        cluster: String(raw.cluster || "").trim(),
-        wave:    String(raw.wave || "").trim(),
+        id:      String(raw.id ?? "").trim(),
+        name:    String(raw.name ?? "").trim(),
+        email:   String(raw.email ?? "").trim(),
+        team,
+        cluster,
+        wave:    String(raw.wave ?? "").trim(),
     };
 }
 
@@ -31,11 +37,11 @@ async function fetchEmployeesFromGitHub(): Promise<Employee[]> {
 
     const json    = await res.json();
     const decoded = atob(String(json.content || "").replace(/\n/g, ""));
-    return JSON.parse(decoded).map(normalizeEmployee);
+    return JSON.parse(decoded).map(normalizeEmployee).filter(Boolean) as Employee[];
 }
 
 export async function loadEmployees(): Promise<Employee[]> {
-    const bundled = (bundledEmployees as any[] || []).map(normalizeEmployee);
+    const bundled = (bundledEmployees as any[] || []).map(normalizeEmployee).filter(Boolean) as Employee[];
     const token   = import.meta.env.VITE_GITHUB_TOKEN;
     const repo    = import.meta.env.VITE_GITHUB_REPO;
     const path    = import.meta.env.VITE_GITHUB_FILE_PATH;

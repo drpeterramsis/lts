@@ -11,8 +11,18 @@ interface SeatingMapProps {
 }
 
 export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmployee, userRole }) => {
-  const allWaves = useMemo(() => Array.from(new Set(employees.map(e => e.Wave))), [employees]);
-  const defaultWave = (userRole === 'employee' && loggedInEmployee) ? loggedInEmployee.Wave : (allWaves[0] || '');
+  // Converts anything to a safe non-NaN string key
+  const sk = (...args: any[]) =>
+    args
+      .map(a =>
+        a === undefined || a === null || (typeof a === "number" && isNaN(a))
+          ? "x"
+          : String(a).replace(/[^a-zA-Z0-9_\-]/g, "_")
+      )
+      .join("__")
+
+  const allWaves = useMemo(() => Array.from(new Set(employees.map(e => e.wave))), [employees]);
+  const defaultWave = (userRole === 'employee' && loggedInEmployee) ? loggedInEmployee.wave : (allWaves[0] || '');
   const [selectedWave, setSelectedWave] = useState(defaultWave);
   const [selectedTeam, setSelectedTeam] = useState<{cluster: string, team: string, members: Employee[]} | null>(null);
 
@@ -21,18 +31,50 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
     [employees, selectedWave]
   );
 
-  const groupedData = useMemo(() => {
-    const groups: Record<string, Record<string, Employee[]>> = {};
-    waveEmployees.forEach(emp => {
-      const cluster = String(emp.cluster);
-      if (!groups[cluster]) groups[cluster] = {};
-      if (!groups[cluster][emp.team]) groups[cluster][emp.team] = [];
-      groups[cluster][emp.team].push(emp);
-    });
-    return groups;
-  }, [waveEmployees]);
+  const { clusterGroups, sortedClusters } = useMemo(() => {
+    // FIX D/E: tableGroups build logic with cluster__team
+    const tableGroups: Record<string, { cluster: string, team: string, groupKey: string, members: Employee[] }> = {};
 
-  const clusterNames = Object.keys(groupedData).sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+    waveEmployees.forEach((emp) => {
+        if (!emp) return;
+
+        const cluster = String(emp.cluster ?? "0").trim();
+        const team = String(emp.team ?? "X").trim().toUpperCase();
+
+        const groupKey = `${cluster}__${team}`;
+
+        if (!tableGroups[groupKey]) {
+            tableGroups[groupKey] = {
+                groupKey,
+                cluster,
+                team,
+                members: [],
+            };
+        }
+        tableGroups[groupKey].members.push(emp);
+    });
+
+    const tableArray = Object.values(tableGroups);
+
+    const clusterGroups: Record<string, typeof tableArray> = {};
+    tableArray.forEach(table => {
+        const cluster = String(table.cluster ?? "0").trim();
+        if (!clusterGroups[cluster]) {
+            clusterGroups[cluster] = [];
+        }
+        clusterGroups[cluster].push(table);
+    });
+
+    // Sort cluster keys as strings (NOT parseInt)
+    const sortedClusters = Object.keys(clusterGroups).sort((a, b) => {
+        const numA = Number(a);
+        const numB = Number(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.localeCompare(b);
+    });
+
+    return { clusterGroups, sortedClusters };
+  }, [waveEmployees, selectedWave]);
   
   const showToast = (message: string) => {
     // Basic toast, can enhance if needed
@@ -50,17 +92,17 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
       {/* Facilitator Wave Selector */}
       {(userRole === 'facilitator' || userRole === 'superuser') ? (
         <div className="flex gap-2 mb-4">
-          {allWaves.map(wave => (
+          {[allWaves[0], allWaves[1]].filter(Boolean).map((waveVal, waveIndex) => (
             <button
-              key={wave}
-              onClick={() => setSelectedWave(wave)}
+              key={sk("wv", waveIndex)}
+              onClick={() => setSelectedWave(waveVal)}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                  selectedWave === wave 
+                  selectedWave === waveVal 
                     ? 'bg-[var(--gradient-brand)] text-white' 
                     : 'bg-[#E9E9E9] text-[var(--accent-color)] border border-[var(--border-color)]'
                 }`}
             >
-              Wave {wave}
+              Wave {waveVal}
             </button>
           ))}
         </div>
@@ -72,25 +114,25 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
           <p>No seating data available</p>
         </div>
       ) : (
-        clusterNames.map(cluster => (
-          <div key={cluster} className="w-full">
+        sortedClusters.map(cluster => (
+          <div key={sk("cl", cluster)} className="w-full">
             <h3 className="font-bold text-lg mb-4 text-[var(--text-primary)]">Cluster {cluster}</h3>
             <div className="flex flex-wrap gap-4">
-              {Object.entries(groupedData[cluster] as Record<string, Employee[]>).sort((a,b) => a[0].localeCompare(b[0])).map(([team, members]) => {
-                const teamMembers = members as Employee[];
+              {clusterGroups[cluster].map((table) => {
+                const teamMembers = table.members;
                 const isUserTable = loggedInEmployee && teamMembers.some(m => m.id === loggedInEmployee.id);
                 
                 // Clicking own table allowed for everyone. Clicking others depends on role.
                 const canOpen = isUserTable || (userRole === 'facilitator' || userRole === 'superuser');
                 
-                const teamColor = getTeamColor(team);
+                const teamColor = getTeamColor(table.team);
                 
                 return (
                   <div
-                    key={team}
+                    key={sk("tb", table.cluster, table.team)}
                     onClick={() => {
                         if (canOpen) {
-                            setSelectedTeam({ cluster, team, members: teamMembers });
+                            setSelectedTeam({ cluster: table.cluster, team: table.team, members: teamMembers });
                         } else {
                             showToast("You can only view your own table.");
                         }
@@ -108,7 +150,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                       {isUserTable && <div className="absolute top-0 right-0 text-[#D579A4] text-[10px] font-bold px-2 py-0.5" style={{ color: '#D579A4' }}>YOU ARE HERE</div>}
                       <div className="flex items-center gap-2 mb-2">
                         <span className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }}></span>
-                        <h4 className="font-bold text-[14px]">Table {team}</h4>
+                        <h4 className="font-bold text-[14px]">Table {table.team}</h4>
                       </div>
                       <p className="text-[12px] text-[var(--text-secondary)]">{teamMembers.length} members</p>
                     </div>
@@ -124,7 +166,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
       <AnimatePresence>
         {selectedTeam && (
           <motion.div 
-            key="team-popup"
+            key={sk("popup", selectedTeam.team)}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
             onClick={() => setSelectedTeam(null)}
@@ -136,10 +178,10 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
               </h4>
               <p className="text-[var(--text-secondary)] text-[12px] mb-4">Cluster {selectedTeam.cluster} • Wave {selectedWave}</p>
               <div className="space-y-3 mb-6 mt-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                {selectedTeam.members.map((m, i) => {
+                {selectedTeam.members.map((m) => {
                   const isCurrentUser = loggedInEmployee && m.id === loggedInEmployee.id;
                   return (
-                    <div key={m.id || i} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
+                    <div key={sk("mb", m.id || m.email || m.name)} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
                       <div className={`flex items-center gap-2 font-bold text-[15px] ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: getTeamColor(selectedTeam.team) } : {}}>
                         👤 {isCurrentUser && '★ '}{m.name}
                       </div>
