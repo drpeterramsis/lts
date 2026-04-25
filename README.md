@@ -43,6 +43,9 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.022 - Facilitator map cluster labels now use emoji instead of brackets for totals
+v2.0.021 - Member lists (Map and Stats) now show Member ID instead of Email
+v2.0.020 - Facilitator map now shows cluster total members beside cluster label
 v2.0.019 - Stats mobile cards shrunk (reduced paddings/gaps/chip size)
            Footer padding reduced on mobile for more screen space
 v2.0.018 - Header title changed to "Limitless Annual"

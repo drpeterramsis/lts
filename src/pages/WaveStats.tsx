@@ -163,7 +163,9 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
                     <div key={sk("stats-mb", emp.id || emp.email)} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between group">
                       <div className="flex-1 truncate pr-4">
                         <p className="font-bold text-[14px] text-gray-900 truncate">{emp.name}</p>
-                        <p className="text-[11px] text-gray-500 truncate">{emp.email}</p>
+                        <p className="text-[11px] text-gray-500 truncate">
+                          {emp.id ? `ID: ${emp.id}` : (emp.email ? emp.email : "ID: —")}
+                        </p>
                       </div>
                       
                       <div className="flex items-center gap-2">

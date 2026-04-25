@@ -53,6 +53,16 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
     [employees, selectedWave]
   );
 
+  const clusterCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    waveEmployees.forEach(e => {
+      const c = String(e.cluster ?? "0").trim();
+      if (!c) return;
+      counts[c] = (counts[c] || 0) + 1;
+    });
+    return counts;
+  }, [waveEmployees]);
+
   const { clusterGroups, sortedClusters } = useMemo(() => {
     const tableGroups: Record<string, { cluster: string, team: string, groupKey: string, members: Employee[] }> = {};
 
@@ -149,7 +159,9 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
       ) : (
         sortedClusters.map(cluster => (
           <div key={sk("cl", cluster)} className="w-full">
-            <h3 className="inline-block bg-[#7A3A94] text-white rounded-[20px] px-4 py-1 font-bold text-[13px] mb-4">Cluster {cluster}</h3>
+            <h3 className="inline-block bg-[#7A3A94] text-white rounded-[20px] px-4 py-1 font-bold text-[13px] mb-4 whitespace-nowrap">
+              {isFacilitator ? `Cluster ${cluster} • 👥 ${clusterCounts[cluster] || 0}` : `Cluster ${cluster}`}
+            </h3>
             <div style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
@@ -236,7 +248,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
                           👤 {isCurrentUser && '★ '}{m.name}
                         </div>
                         <div className="text-[11px] font-medium opacity-60 ml-6 text-[var(--text-secondary)] truncate">
-                          {m.email}
+                          {m.id ? `ID: ${m.id}` : (m.email ? m.email : "ID: —")}
                         </div>
                       </div>
                       
