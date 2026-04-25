@@ -1,4 +1,4 @@
-# Limitless Training Simulation (v2.0.001)
+# Limitless Training Simulation (v2.0.006)
 
 A professional, secure employee dashboard for the Limitless Training Simulation (LTS). This application allows members to sign in using their Employee ID to view their current wave assignment, cluster, and team details.
 
@@ -43,25 +43,50 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.006 - Fixed: employee loading via bundled Vite import (no more 404s)
+           Fixed: GitHub API path corrected to src/data/employees_lts.json
+           Fixed: removed broken /data/employees_lts.json fallback
+           Fixed: login title color changed to light grey for visibility
+           Fixed: dark mode disabled globally, light mode forced always
+           Seating map now shows tables grouped by cluster
+           Map is wave-isolated: one wave shown at a time
+           Member counts are per-wave only (never combined)
+           Normal employees see own wave only, open own table only
+           Facilitator/Superuser can toggle between wave maps
+           Wave toggle renders each wave as a fully separate map
+           YOU ARE HERE indicator on user's own table
+v2.0.005 - Login confirmation step added (shows full name + email)
+           Employee cards display raw cluster number only
+           Tactical Team displays A/B/C/D only (no "Team A")
+           Normal employee map: summary view for all tables,
+           but can open only their own table modal
+v2.0.004 - JSON structure kept as-is (team:"A", cluster:"1")
+           App normalizes values internally at runtime
+           Static Vite import used for src/data/employees_lts.json
+           getTeamColor/getTeamLabel/getClusterLabel helpers added
+           All validation updated to match actual JSON values
+           ID comparison uses String().trim() everywhere
+           Form dropdowns updated to save short format values
+           Loading state added to login button
 v2.0.001 - Global theme updated: Indigo + Purple + Light Gray used across all screens
-         - Footer updated to dim gray with white text
-         - Branding updated from EVA/EVA-SIM to Limitless across login and header
+           Footer updated to dim gray with white text
+           Branding updated from EVA/EVA-SIM to Limitless across login and header
 v2.0.000 - LTS Transformation: Complete refactor from EVA Training Simulation to Limitless Training Simulation (LTS).
-         - Updated terminology (Kingdom -> Cluster, Employee Number -> Employee ID).
-         - Updated exact data schema matching LTS requirements.
-         - Updated color variables and default theme specific to LTS.
-         - Hardened GitHub sync mapping and Wave parsing to strict LTS options.
+           Updated terminology (Kingdom -> Cluster, Employee Number -> Employee ID).
+           Updated exact data schema matching LTS requirements.
+           Updated color variables and default theme specific to LTS.
+           Hardened GitHub sync mapping and Wave parsing to strict LTS options.
 v1.0.032 - Feature: Added "Total Records" stats card at the top of Wave Statistics page.
 v1.0.031 - Feature: Synchronized Wave Stats team popup with Seating Map design (added Titles/Units).
-           - Style: Unified team icon logic across the entire dashboard.
+           Style: Unified team icon logic across the entire dashboard.
 v1.0.030 - Fix: Restored compact grid layout (Kingdoms/Tables) as the primary view.
-           - Feature: Added Title and Unit as subtitle inside the team details popup.
-           - Style: Improved popup layout with better hierarchy and contrast.
+           Feature: Added Title and Unit as subtitle inside the team details popup.
+           Style: Improved popup layout with better hierarchy and contrast.
 v1.0.029 - Fix: Switched Seating Map to detailed version and refined Title/Unit subtitles styling in tables and popups.
 v1.0.028 - Map Grid: Applied requested style adjustments.
 v1.0.027 - Map Popup: Wave icon replacement (⏰) and added Title/Unit as subtitle to member names in popup details.
 v1.0.026 - Map Popup: Added Title and Unit as subtitle to member names in popup details
-v1.0.025 - Map Grid: mobile layout adjusted to 1 column per 5 kingdoms (1x5)
+v1.0.025 - Map Grid: mobile layout optimized to 1 column per 5 kingdoms (1x5)
 v1.0.024 - Map Grid: mobile layout optimized to 5 columns per row
 v1.0.023 - Map Grid: optimized to 5 tables per row
 v1.0.022 - Improved Duplicate Modal: added "Select First of All" and "Unselect All" options
@@ -192,3 +217,4 @@ v1.0.008 - Division added to employee profile card,
 - Implemented session persistence.
 - Added professional blue/white theme.
 - Integrated Google Fonts (Inter & Outfit).
+ & Outfit).

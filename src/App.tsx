@@ -35,7 +35,9 @@ import { sortWaves } from './utils/waveUtils';
 // Data and Types
 import employeeData from './data/employees_lts.json';
 import type { Employee, ThemeMode } from './types';
-import { saveToGitHub, fetchFromGitHub } from './utils/githubSync';
+import { loadEmployees as fetchEmployees } from './utils/githubSync';
+import { getTeamLabel, getClusterLabel } from './utils/dataUtils';
+
 
 // ⭐ SUPERUSER IDs — add or remove Employee Numbers here
 const SUPERUSER_IDS = [
@@ -66,7 +68,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'drill' | 'search' | 'map' | 'stats'>('map');
   
   // New States
-  const [employees, setEmployees] = useState<Employee[]>(employeeData as Employee[]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Employee | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -105,14 +107,11 @@ export default function App() {
     
     // Sync latest data from GitHub if available
     const syncData = async () => {
-      const { data, error } = await fetchFromGitHub();
-      if (data) {
+      try {
+        const data = await fetchEmployees();
         setEmployees(data);
-        if (data.length === 0) {
-          showToast('No employees found in data/employees_lts.json', 'error');
-        }
-      } else if (error) {
-        showToast(error, 'error');
+      } catch (err) {
+        showToast('Failed to load employees', 'error');
       }
       setIsLoading(false);
     };
@@ -134,21 +133,21 @@ export default function App() {
 
     if (trimmedId === "000000") {
       setFoundEmployee({
-        "Employee ID": "000000",
-        "Name": "Facilitator Access",
-        "Email": "admin@eva.com",
-        "Wave": "27 April ⏰ 09:30 AM - 11:30 AM",
-        "Cluster": "ALL",
-        "Team": "ALL",
-        "role": "facilitator"
+        id: "000000",
+        name: "Facilitator Access",
+        email: "admin@eva.com",
+        wave: "27 April ⏰ 09:30 AM - 11:30 AM",
+        cluster: "ALL",
+        team: "ALL",
+        role: "facilitator"
       } as Employee);
       setLoginStep(2);
       return;
     }
 
-    const found = employees.find(emp => emp["Employee ID"] === trimmedId);
+    const found = employees.find(emp => String(emp.id).trim() === trimmedId);
     if (found) {
-      setFoundEmployee(found as Employee);
+      setFoundEmployee(found);
       setLoginStep(2);
     } else {
       setError('Invalid Employee ID, please try again');
@@ -157,7 +156,7 @@ export default function App() {
 
   const confirmLogin = () => {
     if (foundEmployee) {
-      const role = getRole(foundEmployee["Employee ID"]);
+      const role = getRole(foundEmployee.id);
       const userWithRole = { ...foundEmployee, role };
       setUser(userWithRole);
       localStorage.setItem('evaSession', JSON.stringify(userWithRole));
@@ -205,12 +204,12 @@ export default function App() {
     setEditingMember(member);
     
     setFormData({
-      id: member["Employee ID"],
-      name: member.Name,
-      email: member.Email,
-      wave: member.Wave,
-      cluster: member.Cluster,
-      team: member.Team
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      wave: member.wave,
+      cluster: member.cluster,
+      team: member.team
     });
     
     setFormErrors({});
@@ -233,7 +232,7 @@ export default function App() {
     setIsSaving(true);
     showToast('Saving to GitHub...', 'loading');
     
-    const updatedList = employees.filter(e => e["Employee ID"] !== deletingMember["Employee ID"]);
+    const updatedList = employees.filter(e => String(e.id).trim() !== String(deletingMember.id).trim());
     setEmployees(updatedList);
     
     const result = await saveToGitHub(updatedList);
@@ -253,7 +252,7 @@ export default function App() {
   const handleCleanDuplicates = () => {
     const groups: Map<string, Employee[]> = new Map();
     employees.forEach(emp => {
-      const id = emp["Employee ID"];
+      const id = String(emp.id).trim();
       if (!groups.has(id)) {
          groups.set(id, []);
       }
@@ -285,7 +284,7 @@ export default function App() {
     const duplicateIds = new Set(duplicateGroups.map(g => g[0]));
     
     const cleanedEmployees = employees.filter(emp => {
-      const id = emp["Employee ID"];
+      const id = String(emp.id).trim();
       if (duplicateIds.has(id)) {
         const group = duplicateGroups.find(g => g[0] === id)![1];
         const selectedIndex = duplicateSelections[id];
@@ -312,7 +311,7 @@ export default function App() {
     const errors: Record<string, string> = {};
     if (!formData.id) errors.id = 'ID is required';
     else if (!/^\d+$/.test(formData.id)) errors.id = 'ID must be numeric only';
-    else if (!editingMember && employees.some(e => e["Employee ID"] === formData.id)) errors.id = '⚠️ This ID already exists';
+    else if (!editingMember && employees.some(e => String(e.id).trim() === String(formData.id).trim())) errors.id = '⚠️ This ID already exists';
     
     if (!formData.name) errors.name = 'Name is required';
     if (!formData.email) errors.email = 'Email is required';
@@ -329,17 +328,17 @@ export default function App() {
     showToast('Saving to GitHub...', 'loading');
 
     const newEmp: Employee = {
-      "Employee ID": formData.id,
-      "Name": formData.name,
-      "Email": formData.email,
-      Wave: formData.wave,
-      Cluster: formData.cluster,
-      Team: formData.team
+      id: formData.id,
+      name: formData.name,
+      email: formData.email,
+      wave: formData.wave,
+      cluster: formData.cluster,
+      team: formData.team
     };
     
     let updatedList;
     if (editingMember) {
-      updatedList = employees.map(e => e["Employee ID"] === editingMember["Employee ID"] ? newEmp : e);
+      updatedList = employees.map(e => String(e.id).trim() === String(editingMember.id).trim() ? newEmp : e);
     } else {
       updatedList = [...employees, newEmp];
     }
@@ -387,8 +386,8 @@ export default function App() {
                 <div className="w-16 h-16 bg-white rounded-2xl mx-auto flex items-center justify-center shadow-xl rotate-3">
                   <Shield className="w-8 h-8 text-[var(--color-indigo)]" />
                 </div>
-                <h1 className="text-3xl font-display font-black tracking-tight mt-6 gradient-text bg-white">Limitless Training</h1>
-                <p className="text-white/80 font-medium">Simulation Management Portal</p>
+                <h1 className="text-3xl font-display font-black tracking-tight mt-6" style={{color: '#E9E9E9'}}>Limitless Training</h1>
+                <p className="font-medium" style={{color: 'rgba(233,233,233,0.85)'}}>Simulation Management Portal</p>
               </div>
 
               <div className="card-surface p-8 pb-10 relative overflow-hidden group border border-[var(--border-color)]">
@@ -440,8 +439,8 @@ export default function App() {
                           </div>
                           <div className="space-y-1">
                              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-dim-gray)]">Identity Confirmation</p>
-                             <h2 className="text-2xl font-black leading-tight text-[var(--text-primary)]">{foundEmployee?.["Employee Name"]}</h2>
-                             <span className="inline-block px-3 py-1 bg-[var(--color-indigo)]/10 text-[var(--color-indigo)] rounded-lg text-[10px] font-black uppercase">{foundEmployee?.Unit}</span>
+                             <h2 className="text-2xl font-black leading-tight text-[var(--text-primary)]">{foundEmployee?.name}</h2>
+                             <p className="text-xs text-[var(--text-secondary)]">{foundEmployee?.email || "Email not available"}</p>
                           </div>
                           <p className="text-sm text-[var(--text-secondary)] font-medium">Is this you? Please confirm to continue.</p>
                        </div>
@@ -553,7 +552,7 @@ export default function App() {
                   <div className="space-y-1">
                      <div className="flex items-center gap-2">
                         <h2 className="text-3xl sm:text-4xl font-display font-black">
-                           Welcome, {user.role === 'facilitator' ? 'Facilitator' : user.Name.split(' ')[0]}! {user.role === 'superuser' ? '⭐' : '👋'}
+                           Welcome, {user.role === 'facilitator' ? 'Facilitator' : (user.name || '').split(' ')[0]}! {user.role === 'superuser' ? '⭐' : '👋'}
                         </h2>
                         {user.role === 'superuser' && (
                            <span className="px-2 py-0.5 bg-[var(--accent-color)] text-white text-[10px] font-black uppercase rounded-full shadow-sm">
@@ -587,14 +586,14 @@ export default function App() {
                         <div className="flex-1 min-w-[320px] text-center md:text-left space-y-1">
                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--accent-color)]/10 border border-[var(--accent-color)] rounded-full mb-1">
                               <Hash className="w-3 h-3 text-[var(--accent-color)]" />
-                              <p className="font-mono text-[var(--accent-color)] text-[12px] font-bold leading-none uppercase">ID: {user["Employee ID"]}</p>
+                              <p className="font-mono text-[var(--accent-color)] text-[12px] font-bold leading-none uppercase">ID: {user.id}</p>
                            </div>
                            <h3 className="text-[20px] sm:text-[22px] font-display font-bold text-[var(--accent-color)] uppercase leading-tight md:whitespace-nowrap">
-                             {user.Name}
+                             {user.name}
                            </h3>
                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
                               <span className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--text-secondary)]">
-                                 <Building className="w-3.5 h-3.5" /> Email: {user.Email}
+                                 <Building className="w-3.5 h-3.5" /> Email: {user.email}
                               </span>
                            </div>
                         </div>
@@ -607,7 +606,7 @@ export default function App() {
                             <div className="flex items-center justify-center gap-1 text-[var(--accent-color)] text-[10px] font-semibold uppercase tracking-[0.12em] mb-1">
                                 <span>🏰</span> CLUSTER
                             </div>
-                            <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none">{user.Cluster}</p>
+                            <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none">{user.cluster}</p>
                         </div>
 
                         {/* WAVE DATE */}
@@ -617,7 +616,7 @@ export default function App() {
                             </div>
                             <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none">
                               {/* Assume exact string split just like before on ' ⏰ ' to keep the format */}
-                              {user.Wave.split(' ⏰ ')[0]?.trim()}
+                              {(user.wave || '').split(' ⏰ ')[0]?.trim()}
                             </p>
                         </div>
 
@@ -627,7 +626,7 @@ export default function App() {
                                 <span>⏰</span> WAVE TIME
                             </div>
                             <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none">
-                              {user.Wave.split(' ⏰ ')[1]?.trim()}
+                              {(user.wave || '').split(' ⏰ ')[1]?.trim()}
                             </p>
                         </div>
 
@@ -637,7 +636,7 @@ export default function App() {
                                 <span>👥</span> TACTICAL TEAM
                             </div>
                             <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none whitespace-nowrap">
-                              {user.Team}
+                              {user.team}
                             </p>
                         </div>
                      </div>

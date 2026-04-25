@@ -1,13 +1,13 @@
 export type EmployeeRole = 'employee' | 'facilitator' | 'superuser';
 
 export type Employee = {
-    "Employee ID": string;
-    "Name": string;
-    "Email": string;
-    "Team": string;
-    "Cluster": string;
-    "Wave": string;
-    "role"?: EmployeeRole;
+    id: string;
+    name: string;
+    email: string;
+    team: string; // "A", "B", "C", "D"
+    cluster: string; // "1", "2"...
+    wave: string;
+    role?: EmployeeRole;
 };
 
 export type ThemeMode = 'light' | 'dark';

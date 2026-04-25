@@ -91,8 +91,8 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
           <h3 className="font-bold text-lg mb-4 text-[var(--text-primary)]">Breakdown: Wave {selectedWaveId}</h3>
           {Object.entries(breakdownData).sort((a, b) => a[0].localeCompare(b[0], undefined, {numeric: true})).map(([k, teams]) => (
             <div key={k} className="border border-[var(--border-color)] rounded-lg overflow-hidden relative">
-               <div className="header-brand p-2 font-bold text-white border-b border-[var(--border-color)] shadow-sm">Cluster {k}</div>
-               <table className="w-full text-left bg-[var(--bg-card)]">
+               <div className="header-brand p-2 font-bold text-white border-b border-[var(--border-color)] shadow-sm">{k}</div>
+                <table className="w-full text-left bg-[var(--bg-card)]">
                   <thead className="text-[var(--accent-color)] border-b border-[var(--border-color)] bg-[var(--border-color)] text-xs uppercase">
                     <tr><th className="p-2">Team</th><th className="p-2">Members</th></tr>
                   </thead>
@@ -127,7 +127,7 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
               </span>
             </h4>
             <div className="text-[var(--text-secondary)] text-[11px] mb-4 flex items-center gap-2">
-              <span className="px-1.5 rounded" style={{ backgroundColor: `${getTeamColor(selectedTeam.team)}20`, color: getTeamColor(selectedTeam.team) }}>Cluster {selectedTeam.cluster}</span>
+              <span className="px-1.5 rounded" style={{ backgroundColor: `${getTeamColor(selectedTeam.team)}20`, color: getTeamColor(selectedTeam.team) }}>{selectedTeam.cluster}</span>
               <span>•</span>
               <span>Wave {(selectedWaveId || '')}</span>
             </div>

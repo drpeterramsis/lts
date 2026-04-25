@@ -1,9 +1,58 @@
 import { Employee } from "../types";
+import bundledEmployees from '../data/employees_lts.json';
+
+function normalizeEmployee(raw: any): Employee {
+    return {
+        id:      String(raw.id || "").trim(),
+        name:    String(raw.name || "").trim(),
+        email:   String(raw.email || "").trim(),
+        team:    String(raw.team || "").trim().toUpperCase(),
+        cluster: String(raw.cluster || "").trim(),
+        wave:    String(raw.wave || "").trim(),
+    };
+}
+
+async function fetchEmployeesFromGitHub(): Promise<Employee[]> {
+    const token    = import.meta.env.VITE_GITHUB_TOKEN;
+    const repo     = import.meta.env.VITE_GITHUB_REPO;
+    const filePath = import.meta.env.VITE_GITHUB_FILE_PATH || "src/data/employees_lts.json";
+    const branch   = import.meta.env.VITE_GITHUB_BRANCH || "main";
+
+    const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`;
+
+    const res = await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/vnd.github.v3+json",
+        },
+    });
+
+    if (!res.ok) throw new Error(`GitHub fetch failed: ${res.status}`);
+
+    const json    = await res.json();
+    const decoded = atob(String(json.content || "").replace(/\n/g, ""));
+    return JSON.parse(decoded).map(normalizeEmployee);
+}
+
+export async function loadEmployees(): Promise<Employee[]> {
+    const bundled = (bundledEmployees as any[] || []).map(normalizeEmployee);
+    const token   = import.meta.env.VITE_GITHUB_TOKEN;
+    const repo    = import.meta.env.VITE_GITHUB_REPO;
+    const path    = import.meta.env.VITE_GITHUB_FILE_PATH;
+
+    if (!token || !repo || !path) return bundled;
+
+    try {
+        const data = await fetchEmployeesFromGitHub();
+        return (data && data.length) ? data : bundled;
+    } catch {
+        return bundled;
+    }
+}
 
 export const saveToGitHub = async (
   updatedEmployees: Employee[]
 ): Promise<{ success: boolean; message: string }> => {
-
   const token = import.meta.env.VITE_GITHUB_TOKEN;
   const repo = import.meta.env.VITE_GITHUB_REPO;
   const filePath = import.meta.env.VITE_GITHUB_FILE_PATH;
@@ -13,10 +62,6 @@ export const saveToGitHub = async (
     `https://api.github.com/repos/${repo}/contents/${filePath}`;
 
   console.log("🔄 Starting GitHub sync...");
-  console.log("📁 Repo:", repo);
-  console.log("📄 File:", filePath);
-  console.log("🌿 Branch:", branch);
-  console.log("🔑 Token exists:", !!token);
 
   try {
     // STEP A: Get current file SHA
@@ -26,8 +71,6 @@ export const saveToGitHub = async (
         Accept: "application/vnd.github+json",
       },
     });
-
-    console.log("📥 GET status:", getRes.status);
 
     if (!getRes.ok) {
       return {
@@ -61,8 +104,6 @@ export const saveToGitHub = async (
       }),
     });
 
-    console.log("📤 PUT status:", putRes.status);
-
     if (putRes.ok) {
       return {
         success: true,
@@ -70,7 +111,6 @@ export const saveToGitHub = async (
       };
     } else {
       const err = await putRes.json();
-      console.error("❌ PUT error:", err);
       return {
         success: false,
         message: err.message || "GitHub save failed"
@@ -86,54 +126,3 @@ export const saveToGitHub = async (
   }
 };
 
-export const fetchFromGitHub = async (): Promise<{ data: Employee[] | null; error: string | null }> => {
-  const token = import.meta.env.VITE_GITHUB_TOKEN;
-  const repo = import.meta.env.VITE_GITHUB_REPO;
-  const filePath = import.meta.env.VITE_GITHUB_FILE_PATH;
-
-  let employees: Employee[] | null = null;
-  let fetchError: string | null = null;
-
-  try {
-    if (token && repo && filePath) {
-      const apiUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
-      const res = await fetch(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const decoded = atob(data.content.replace(/\n/g, ''));
-        employees = JSON.parse(decoded);
-      } else {
-        fetchError = `GitHub API Error: ${res.status}`;
-      }
-    } else {
-      fetchError = "Missing GitHub environment variables.";
-    }
-  } catch (error) {
-    console.error("❌ GitHub fetch error:", error);
-    fetchError = "Network error or failed to parse GitHub data.";
-  }
-
-  // Fallback to local / public/data
-  if (!employees) {
-    try {
-      console.log("⚠️ Falling back to local data/employees_lts.json");
-      const localRes = await fetch('/data/employees_lts.json');
-      if (localRes.ok) {
-        employees = await localRes.json();
-        fetchError = null; // Clear error if local works
-      } else {
-        if (!fetchError) fetchError = "Could not load employees. Check GitHub token and file path.";
-      }
-    } catch (localError) {
-      if (!fetchError) fetchError = "Could not load employees. Check GitHub token and file path.";
-    }
-  }
-
-  return { data: employees, error: fetchError };
-};

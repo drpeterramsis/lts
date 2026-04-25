@@ -147,7 +147,7 @@ export const DrillDown = ({ data, onEdit, onDelete, userRole }: DrillDownProps) 
         {cluster && (
           <>
             <ChevronRight className="w-3 h-3 text-[var(--text-secondary)]" />
-            <span className="flex items-center gap-1.5">🏰 Cluster {cluster}</span>
+            <span className="flex items-center gap-1.5">🏰 {cluster}</span>
           </>
         )}
         {team && (
@@ -209,7 +209,7 @@ export const DrillDown = ({ data, onEdit, onDelete, userRole }: DrillDownProps) 
                     <Badge count={getClusterCount(c)} />
                   </div>
                   <div className="p-3 bg-[var(--accent-color)]/10 rounded-xl text-[var(--accent-color)]"><Crown className="w-6 h-6" /></div>
-                  <span className="font-bold text-[var(--text-primary)]">Cluster {c}</span>
+                  <span className="font-bold text-[var(--text-primary)]">{c}</span>
                 </motion.button>
               ))}
             </div>

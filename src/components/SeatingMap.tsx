@@ -12,27 +12,32 @@ interface SeatingMapProps {
 
 export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmployee, userRole }) => {
   const allWaves = useMemo(() => Array.from(new Set(employees.map(e => e.Wave))), [employees]);
-  const defaultWave = loggedInEmployee ? loggedInEmployee.Wave : (allWaves[0] || '');
+  const defaultWave = (userRole === 'employee' && loggedInEmployee) ? loggedInEmployee.Wave : (allWaves[0] || '');
   const [selectedWave, setSelectedWave] = useState(defaultWave);
   const [selectedTeam, setSelectedTeam] = useState<{cluster: string, team: string, members: Employee[]} | null>(null);
 
   const waveEmployees = useMemo(() => 
-    employees.filter(e => e.Wave === selectedWave), 
+    employees.filter(e => e.wave === selectedWave), 
     [employees, selectedWave]
   );
 
   const groupedData = useMemo(() => {
     const groups: Record<string, Record<string, Employee[]>> = {};
     waveEmployees.forEach(emp => {
-      const cluster = String(emp.Cluster);
+      const cluster = String(emp.cluster);
       if (!groups[cluster]) groups[cluster] = {};
-      if (!groups[cluster][emp.Team]) groups[cluster][emp.Team] = [];
-      groups[cluster][emp.Team].push(emp);
+      if (!groups[cluster][emp.team]) groups[cluster][emp.team] = [];
+      groups[cluster][emp.team].push(emp);
     });
     return groups;
   }, [waveEmployees]);
 
   const clusterNames = Object.keys(groupedData).sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+  
+  const showToast = (message: string) => {
+    // Basic toast, can enhance if needed
+    alert(message);
+  };
 
   return (
     <div className="space-y-6">
@@ -43,19 +48,23 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
       </div>
 
       {/* Facilitator Wave Selector */}
-      {(userRole === 'facilitator' || userRole === 'superuser') && (
+      {(userRole === 'facilitator' || userRole === 'superuser') ? (
         <div className="flex gap-2 mb-4">
           {allWaves.map(wave => (
             <button
               key={wave}
               onClick={() => setSelectedWave(wave)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${selectedWave === wave ? 'bg-[var(--accent-color)] text-white' : 'bg-transparent border border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-color)] hover:text-[var(--text-primary)]'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                  selectedWave === wave 
+                    ? 'bg-[var(--gradient-brand)] text-white' 
+                    : 'bg-[#E9E9E9] text-[var(--accent-color)] border border-[var(--border-color)]'
+                }`}
             >
               Wave {wave}
             </button>
           ))}
         </div>
-      )}
+      ) : null}
 
       {waveEmployees.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-[var(--text-secondary)] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl">
@@ -65,53 +74,43 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
       ) : (
         clusterNames.map(cluster => (
           <div key={cluster} className="w-full">
-            <h3 className="header-brand font-bold text-white text-lg mb-4 px-4 py-2 rounded-t-lg shadow-sm">Cluster {cluster}</h3>
+            <h3 className="font-bold text-lg mb-4 text-[var(--text-primary)]">Cluster {cluster}</h3>
             <div className="flex flex-wrap gap-4">
               {Object.entries(groupedData[cluster] as Record<string, Employee[]>).sort((a,b) => a[0].localeCompare(b[0])).map(([team, members]) => {
                 const teamMembers = members as Employee[];
-                const isUserTable = loggedInEmployee && teamMembers.some(m => m["Employee ID"] === loggedInEmployee["Employee ID"]);
-                const isClickable = (userRole === 'facilitator' || userRole === 'superuser' || isUserTable);
+                const isUserTable = loggedInEmployee && teamMembers.some(m => m.id === loggedInEmployee.id);
+                
+                // Clicking own table allowed for everyone. Clicking others depends on role.
+                const canOpen = isUserTable || (userRole === 'facilitator' || userRole === 'superuser');
+                
                 const teamColor = getTeamColor(team);
                 
                 return (
                   <div
                     key={team}
-                    onClick={() => isClickable && setSelectedTeam({ cluster, team, members: teamMembers })}
-                    className={`min-w-[220px] bg-[var(--bg-card)] border rounded-xl relative overflow-hidden transition-all ${isUserTable ? 'cursor-pointer' : 'border-[var(--border-color)] hover:border-[var(--accent-color)]'}`}
+                    onClick={() => {
+                        if (canOpen) {
+                            setSelectedTeam({ cluster, team, members: teamMembers });
+                        } else {
+                            showToast("You can only view your own table.");
+                        }
+                    }}
+                    className={`min-w-[220px] bg-[#F8F7F7] border border-[#D0D0D0] rounded-[10px] p-4 relative overflow-hidden transition-all ${canOpen ? 'cursor-pointer hover:border-[#454E96]' : ''}`}
                     style={isUserTable ? { 
                       border: '2px solid transparent', 
-                      backgroundImage: 'linear-gradient(var(--bg-card), var(--bg-card)), var(--gradient-brand)', 
+                      backgroundImage: 'linear-gradient(#F8F7F7, #F8F7F7), var(--gradient-brand)', 
                       backgroundClip: 'padding-box, border-box', 
                       backgroundOrigin: 'border-box', 
-                      boxShadow: '0 0 20px rgba(68, 78, 150, 0.25)' 
+                      boxShadow: '0 0 16px rgba(68, 78, 150, 0.25)' 
                     } : {}}
                   >
-                    <div className="h-2 w-full" style={{ backgroundColor: teamColor }}></div>
-                    <div className="p-4">
-                      {isUserTable && <div className="absolute top-2 right-0 text-white text-[10px] font-bold px-2 py-0.5 rounded-l-lg" style={{ backgroundColor: teamColor }}>Your Table</div>}
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-[var(--text-primary)] text-sm flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }}></span>
-                          {team}
-                        </h4>
-                        <span className="text-[10px] font-bold px-2 py-1 rounded bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-secondary)]">
-                          {teamMembers.length}
-                        </span>
+                    <div className="relative">
+                      {isUserTable && <div className="absolute top-0 right-0 text-[#D579A4] text-[10px] font-bold px-2 py-0.5" style={{ color: '#D579A4' }}>YOU ARE HERE</div>}
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }}></span>
+                        <h4 className="font-bold text-[14px]">Table {team}</h4>
                       </div>
-                      <div className="border-t border-[var(--border-color)] my-2" />
-                      <div className="space-y-1.5 pt-1">
-                        {teamMembers.map((m, i) => {
-                          const isCurrentUser = loggedInEmployee && m["Employee ID"] === loggedInEmployee["Employee ID"];
-                          return (
-                            <div key={m["Employee ID"] || i} className={`flex flex-col mb-1 ${isCurrentUser ? 'text-[var(--accent-color)]' : ''}`}>
-                              <div className={`flex items-center gap-1.5 font-bold text-[13px] ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: teamColor } : {}}>
-                                {isCurrentUser && '★ '}
-                                {m.Name}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <p className="text-[12px] text-[var(--text-secondary)]">{teamMembers.length} members</p>
                     </div>
                   </div>
                 );
@@ -138,14 +137,14 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
               <p className="text-[var(--text-secondary)] text-[12px] mb-4">Cluster {selectedTeam.cluster} • Wave {selectedWave}</p>
               <div className="space-y-3 mb-6 mt-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
                 {selectedTeam.members.map((m, i) => {
-                  const isCurrentUser = loggedInEmployee && m["Employee ID"] === loggedInEmployee["Employee ID"];
+                  const isCurrentUser = loggedInEmployee && m.id === loggedInEmployee.id;
                   return (
-                    <div key={m["Employee ID"] || i} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
+                    <div key={m.id || i} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
                       <div className={`flex items-center gap-2 font-bold text-[15px] ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: getTeamColor(selectedTeam.team) } : {}}>
-                        👤 {isCurrentUser && '★ '}{m.Name}
+                        👤 {isCurrentUser && '★ '}{m.name}
                       </div>
                       <div className="text-[12px] font-medium opacity-60 ml-7 text-[var(--text-secondary)] mt-0.5">
-                        {m.Email}
+                        {m.email}
                       </div>
                     </div>
                   );

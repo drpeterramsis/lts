@@ -12,10 +12,10 @@ interface SearchEngineProps {
 }
 
 export const getTeamColor = (teamName: string): string => {
-  if (teamName === 'Team A') return '#0C488A'; // Royal Blue
-  if (teamName === 'Team B') return '#454E96'; // Indigo
-  if (teamName === 'Team C') return '#7A3A94'; // Purple
-  if (teamName === 'Team D') return '#D579A4'; // Rose Pink
+  if (teamName === 'A') return '#0C488A'; // Royal Blue
+  if (teamName === 'B') return '#454E96'; // Indigo
+  if (teamName === 'C') return '#7A3A94'; // Purple
+  if (teamName === 'D') return '#D579A4'; // Rose Pink
   return '#353335';
 };
 
