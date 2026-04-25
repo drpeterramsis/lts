@@ -19,3 +19,18 @@ export const getClusterLabel = (cluster: string): string => {
     if (!isNaN(Number(c)) && c !== "") return `Cluster ${c}`;
     return cluster;
 };
+
+export function sortMembersAZ(list: any[]) {
+  return [...(list || [])].sort((a, b) => {
+    const an = String(a?.name || "").trim().toLowerCase();
+    const bn = String(b?.name || "").trim().toLowerCase();
+
+    if (!an && bn) return 1;
+    if (an && !bn) return -1;
+
+    const byName = an.localeCompare(bn);
+    if (byName !== 0) return byName;
+
+    return String(a?.id || "").localeCompare(String(b?.id || ""));
+  });
+}

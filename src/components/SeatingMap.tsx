@@ -4,7 +4,8 @@ import { MapPin, Pencil, ArrowRightLeft, Trash2, UserPlus } from 'lucide-react';
 import { Employee } from '../types';
 import { getTeamColor } from './SearchEngine';
 import { sk } from '../utils/safeKey';
-import { WAVE_1, WAVE_2, WAVE_LABELS, matchWave } from '../constants/waves';
+import { WAVE_1, WAVE_2, UNIQUE_TEAMS, WAVE_LABELS, matchWave } from '../constants/waves';
+import { sortMembersAZ } from '../utils/dataUtils';
 import { parseWave } from '../utils/wave';
 
 interface SeatingMapProps {
@@ -101,6 +102,28 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
         const numB = Number(b);
         if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
         return (a as string).localeCompare(b as string);
+    });
+
+    // MOD 10: Ensure teams are A, B, C, D within each cluster header
+    // We'll transform clusterGroups here if needed, or do it in the render.
+    // Actually, it's better to ensure clusterGroups[cluster] is always A, B, C, D.
+
+    sortedClusters.forEach(cluster => {
+      const existingTables = clusterGroups[cluster];
+      const orderedTables: typeof existingTables = [];
+      
+      UNIQUE_TEAMS.forEach(team => {
+        const found = existingTables.find(t => t.team === team);
+        if (found) {
+          orderedTables.push(found);
+        } else {
+          // If a team is empty, we still might want it there? 
+          // The UI says "skip empty teams only if the UI already does".
+          // Currently SeatingMap only renders what's in clusterGroups.
+          // Let's keep it as is (filtering out empty teams) but ensure the order is A, B, C, D.
+        }
+      });
+      clusterGroups[cluster] = orderedTables;
     });
 
     return { clusterGroups, sortedClusters };
@@ -239,7 +262,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
               )}
 
               <div className="space-y-2 mb-6 mt-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
-                {selectedTeam.members.map((m) => {
+                {sortMembersAZ(selectedTeam.members).map((m) => {
                   const isCurrentUser = loggedInEmployee && String(m.id).trim() === String(loggedInEmployee.id).trim();
                   return (
                     <div key={sk("mb", m.id || m.email)} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>

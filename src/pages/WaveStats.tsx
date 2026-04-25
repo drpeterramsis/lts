@@ -5,6 +5,7 @@ import { getTeamColor } from '../components/SearchEngine';
 import { sk } from '../utils/safeKey';
 import { WAVE_1, WAVE_2, UNIQUE_TEAMS, WAVE_LABELS, matchWave } from '../constants/waves';
 import { parseWave } from '../utils/wave';
+import { sortMembersAZ } from '../utils/dataUtils';
 
 interface WaveStatsProps {
   employees: Employee[];
@@ -157,7 +158,7 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-6 max-h-[400px]">
-                {selectedTeam.members.map(emp => {
+                {sortMembersAZ(selectedTeam.members).map(emp => {
                   const isFacilitator = userRole === 'facilitator' || userRole === 'superuser';
                   return (
                     <div key={sk("stats-mb", emp.id || emp.email)} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between group">
