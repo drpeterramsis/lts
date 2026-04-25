@@ -43,6 +43,12 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.019 - Stats mobile cards shrunk (reduced paddings/gaps/chip size)
+           Footer padding reduced on mobile for more screen space
+v2.0.018 - Header title changed to "Limitless Annual"
+           Stats wave grid made fully visible on mobile
+           Cluster labels improved for mobile alignment
+           Wave toggle buttons wrap text on mobile
 v2.0.017 - Facilitator map table modal compact padding
            Facilitator member actions: edit/delete/transfer
            Add/Edit/Transfer forms prefill current values

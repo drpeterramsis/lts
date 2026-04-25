@@ -119,38 +119,20 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
       {/* Facilitator Wave Selector */}
       {isFacilitator ? (
         <div 
-          className="flex gap-2 p-[6px] bg-[#1F2937] rounded-[12px] w-fit mb-6"
+          className="flex gap-2 p-[6px] bg-[#1F2937] rounded-[16px] w-full sm:w-fit mb-6"
         >
           {[WAVE_1, WAVE_2].map((waveVal, waveIndex) => (
             <button
               key={sk("wavetab", waveIndex)}
               onClick={() => setSelectedWave(waveVal)}
-              style={
+              className={`flex-1 sm:w-44 min-h-[58px] rounded-[10px] px-3 py-2 flex flex-col items-center justify-center text-center transition-all duration-300 ${
                 selectedWave === waveVal
-                  ? {
-                      background: "linear-gradient(90deg,#0C488A,#454E96,#7A3A94,#D579A4)",
-                      color: "#FFFFFF",
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "10px 28px",
-                      fontWeight: 700,
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      boxShadow: "0 2px 12px rgba(68,78,150,0.35)",
-                    }
-                  : {
-                      background: "#4B5563",
-                      color: "#D1D5DB",
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "10px 28px",
-                      fontWeight: 500,
-                      fontSize: "14px",
-                      cursor: "pointer",
-                    }
-              }
+                  ? 'bg-gradient-to-br from-[#0C488A] via-[#454E96] to-[#7A3A94] text-white shadow-lg active:scale-95'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
             >
-              {WAVE_LABELS[waveVal as keyof typeof WAVE_LABELS]}
+              <span className="text-[14px] font-bold block leading-tight">{parseWave(waveVal).date}</span>
+              <span className="text-[11px] opacity-80 mt-0.5 leading-tight">{parseWave(waveVal).time}</span>
             </button>
           ))}
         </div>

@@ -533,7 +533,7 @@ export default function App() {
                   <div className="flex items-center gap-6 h-full">
                      <h1 className="font-display font-bold text-white text-lg sm:text-xl whitespace-nowrap pt-1">
                         <span className="hidden sm:inline">Limitless Training Simulation</span>
-                        <span className="sm:hidden">LTS 2026</span>
+                        <span className="sm:hidden">Limitless Annual</span>
                      </h1>
                      
                      {/* Nav Items */}
@@ -728,10 +728,17 @@ export default function App() {
                        </motion.div>
                       ) : activeTab === 'stats' ? (
                         <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                          <WaveStats employees={employees} userRole={user.role} onEdit={openEditModal} onDelete={openDeleteModal} onUpdateEmployees={(updated) => {
-                            setEmployees(updated);
-                            saveToGitHub(updated);
-                          }} />
+                          <WaveStats 
+                             employees={employees} 
+                             userRole={user.role} 
+                             onEdit={openEditModal} 
+                             onDelete={openDeleteModal} 
+                             onTransfer={openTransferModal}
+                             onUpdateEmployees={(updated) => {
+                               setEmployees(updated);
+                               saveToGitHub(updated);
+                             }} 
+                          />
                         </motion.div>
                     ) : (
                       <motion.div key="search" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
