@@ -14,7 +14,7 @@ export const Footer = ({ onLogout, showLogout }: FooterProps) => {
       </div>
 
       <div className="text-[13px] text-white font-bold opacity-90">
-        Limitless Simulation © 2025 — {APP_VERSION}
+        © 2026 — {APP_VERSION}
       </div>
 
       <div className="flex items-center">

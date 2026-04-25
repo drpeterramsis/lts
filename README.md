@@ -43,6 +43,12 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.017 - Facilitator map table modal compact padding
+           Facilitator member actions: edit/delete/transfer
+           Add/Edit/Transfer forms prefill current values
+           Cluster dropdown shows total members per cluster
+           Team dropdown shows total members per team (in selected cluster)
+           Stats team chips improved with colors + emoji labels
 v2.0.016 - Fixed: wave emoji encoding issue (â°) breaking layout
            Fixed: parseWave no longer depends on ⏰ split
            Added: normalizeWave() detects wave by time markers

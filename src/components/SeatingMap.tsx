@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Pencil, ArrowRightLeft, Trash2, UserPlus } from 'lucide-react';
 import { Employee } from '../types';
 import { getTeamColor } from './SearchEngine';
 import { sk } from '../utils/safeKey';
@@ -11,9 +11,21 @@ interface SeatingMapProps {
   employees: Employee[];
   loggedInEmployee: Employee | null;
   userRole: string;
+  onEdit?: (member: Employee) => void;
+  onDelete?: (member: Employee) => void;
+  onTransfer?: (member: Employee) => void;
+  onAddMember?: (wave: string, cluster: string, team: string) => void;
 }
 
-export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmployee, userRole }) => {
+export const SeatingMap: React.FC<SeatingMapProps> = ({ 
+  employees, 
+  loggedInEmployee, 
+  userRole,
+  onEdit,
+  onDelete,
+  onTransfer,
+  onAddMember
+}) => {
   const isFacilitator = userRole === 'facilitator' || userRole === 'superuser';
   
   // Derive unique clusters from the current employee list
@@ -204,31 +216,84 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
           <motion.div 
             key={sk("popup", selectedTeam.team)}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
             onClick={() => setSelectedTeam(null)}
           >
-            <div className="bg-[var(--bg-card)] border rounded-2xl p-7 w-full max-w-[360px] shadow-2xl" style={{ borderColor: getTeamColor(selectedTeam.team) }} onClick={e => e.stopPropagation()}>
-              <h4 className="font-bold text-lg flex items-center gap-2" style={{ color: getTeamColor(selectedTeam.team) }}>
-                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: getTeamColor(selectedTeam.team) }}></span>
-                {selectedTeam.team}
-              </h4>
-              <p className="text-[var(--text-secondary)] text-[12px] mb-4">Cluster {selectedTeam.cluster} • {parseWave(selectedWave).date} {parseWave(selectedWave).time}</p>
-              <div className="space-y-3 mb-6 mt-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="bg-[var(--bg-card)] border rounded-[14px] p-4 w-full max-w-[360px] shadow-2xl overflow-hidden flex flex-col" style={{ borderColor: getTeamColor(selectedTeam.team) }} onClick={e => e.stopPropagation()}>
+              <div className="mb-3 pb-2 border-b border-[var(--border-color)]">
+                <h4 className="font-bold text-lg flex items-center gap-2" style={{ color: getTeamColor(selectedTeam.team) }}>
+                  <span className="w-4 h-4 rounded-full" style={{ backgroundColor: getTeamColor(selectedTeam.team) }}></span>
+                  Team {selectedTeam.team}
+                </h4>
+                <p className="text-[var(--text-secondary)] text-[12px]">Cluster {selectedTeam.cluster} • {parseWave(selectedWave).date} {parseWave(selectedWave).time}</p>
+              </div>
+
+              {isFacilitator && (
+                <div className="mb-4">
+                  <button 
+                    onClick={() => {
+                        // Pass current table as defaults
+                        // We need a way to communicate this to App.tsx
+                        // I'll add an onAddMember prop
+                        onAddMember?.(selectedWave, selectedTeam.cluster, selectedTeam.team);
+                    }}
+                    className="w-full py-2 bg-[var(--accent-color)]/10 text-[var(--accent-color)] border border-[var(--accent-color)]/30 rounded-xl font-bold text-[12px] flex items-center justify-center gap-2 hover:bg-[var(--accent-color)]/20 transition-all"
+                  >
+                    <UserPlus className="w-4 h-4" /> Add Member to Table
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-2 mb-6 mt-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                 {selectedTeam.members.map((m) => {
                   const isCurrentUser = loggedInEmployee && String(m.id).trim() === String(loggedInEmployee.id).trim();
                   return (
-                    <div key={sk("mb", m.id || m.email)} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
-                      <div className={`flex items-center gap-2 font-bold text-[15px] ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: getTeamColor(selectedTeam.team) } : {}}>
-                        👤 {isCurrentUser && '★ '}{m.name}
+                    <div key={sk("mb", m.id || m.email)} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
+                      <div className="flex-1 min-w-0">
+                        <div className={`flex items-center gap-2 font-bold text-[13px] truncate ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: getTeamColor(selectedTeam.team) } : {}}>
+                          👤 {isCurrentUser && '★ '}{m.name}
+                        </div>
+                        <div className="text-[11px] font-medium opacity-60 ml-6 text-[var(--text-secondary)] truncate">
+                          {m.email}
+                        </div>
                       </div>
-                      <div className="text-[12px] font-medium opacity-60 ml-7 text-[var(--text-secondary)] mt-0.5">
-                        {m.email}
-                      </div>
+                      
+                      {isFacilitator && (
+                        <div className="flex items-center gap-1 ml-2 shrink-0">
+                          <button 
+                            onClick={() => onEdit?.(m)}
+                            className="p-1.5 hover:bg-black/5 rounded-lg text-[var(--accent-color)] transition-colors"
+                            title="Edit Member"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => onTransfer?.(m)}
+                            className="p-1.5 hover:bg-black/5 rounded-lg text-[var(--accent-color)] transition-colors"
+                            title="Transfer Member"
+                          >
+                            <ArrowRightLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => onDelete?.(m)}
+                            className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
+                            title="Delete Member"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
-              <button onClick={() => setSelectedTeam(null)} className="w-full text-white rounded-xl py-3 font-bold transition-all hover:opacity-90" style={{ backgroundColor: getTeamColor(selectedTeam.team) }}>Close</button>
+              <button 
+                onClick={() => setSelectedTeam(null)} 
+                className="w-full text-white rounded-xl py-2.5 font-bold transition-all hover:opacity-90 text-[14px]" 
+                style={{ backgroundColor: getTeamColor(selectedTeam.team) }}
+              >
+                Close
+              </button>
             </div>
           </motion.div>
         )}

@@ -55,6 +55,11 @@ export default function App() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingMember, setDeletingMember] = useState<Employee | null>(null);
   
+  // Transfer State
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferMember, setTransferMember] = useState<Employee | null>(null);
+  const [transferData, setTransferData] = useState({ wave: '', cluster: '', team: '' });
+
   // Deduplication States
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [duplicateGroups, setDuplicateGroups] = useState<[string, Employee[]][]>([]);
@@ -186,9 +191,16 @@ export default function App() {
     });
   }, [employees]);
 
-  const openAddModal = () => {
+  const openAddModal = (wave?: string, cluster?: string, team?: string) => {
     setEditingMember(null);
-    setFormData({ id: '', name: '', email: '', wave: '', cluster: '', team: '' });
+    setFormData({ 
+      id: '', 
+      name: '', 
+      email: '', 
+      wave: wave || WAVE_1, 
+      cluster: cluster || "1", 
+      team: team || "A" 
+    });
     setFormErrors({});
     setIsModalOpen(true);
   };
@@ -200,13 +212,23 @@ export default function App() {
       id: member.id,
       name: member.name || "",
       email: member.email || "",
-      wave: member.wave || uniqueWaves[0] || "",
+      wave: member.wave || WAVE_1,
       cluster: member.cluster || "1",
       team: member.team || "A"
     });
     
     setFormErrors({});
     setIsModalOpen(true);
+  };
+
+  const openTransferModal = (member: Employee) => {
+    setTransferMember(member);
+    setTransferData({
+      wave: member.wave || WAVE_1,
+      cluster: member.cluster || "1",
+      team: member.team || "A"
+    });
+    setIsTransferModalOpen(true);
   };
 
   const openDeleteModal = (member: Employee) => {
@@ -349,6 +371,52 @@ export default function App() {
       showToast('GitHub sync failed. Saved locally only.', 'error');
       setIsModalOpen(false);
     }
+  };
+
+  const handleTransferMember = async () => {
+    if (!transferMember) return;
+    
+    setIsSaving(true);
+    showToast('Transferring member...', 'loading');
+    
+    const updatedMember = {
+      ...transferMember,
+      wave: transferData.wave,
+      cluster: transferData.cluster,
+      team: transferData.team
+    };
+    
+    const updatedList = employees.map(e => String(e.id).trim() === String(transferMember.id).trim() ? updatedMember : e);
+    setEmployees(updatedList);
+    
+    const result = await saveToGitHub(updatedList);
+    setIsSaving(false);
+    
+    if (result.success) {
+      showToast('Member transferred successfully ✅', 'success');
+      setIsTransferModalOpen(false);
+    } else {
+      showToast('Transfer failed. Saved locally only.', 'error');
+      setIsTransferModalOpen(false);
+    }
+  };
+
+  // Helper for counts
+  const getCounts = (wave: string, cluster?: string) => {
+    const inWave = employees.filter(e => e.wave === wave);
+    const clusters: Record<string, number> = {};
+    const teams: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
+    
+    inWave.forEach(e => {
+      const cl = String(e.cluster || "0");
+      clusters[cl] = (clusters[cl] || 0) + 1;
+      
+      if (cluster && String(e.cluster) === String(cluster)) {
+        if (teams[e.team] !== undefined) teams[e.team]++;
+      }
+    });
+    
+    return { clusters, teams };
   };
 
   if (isLoading) {
@@ -648,7 +716,15 @@ export default function App() {
                     <AnimatePresence mode="wait">
                       {activeTab === 'map' ? (
                        <motion.div key="map" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                          <SeatingMap employees={employees} loggedInEmployee={user} userRole={user.role} />
+                          <SeatingMap 
+                            employees={employees} 
+                            loggedInEmployee={user} 
+                            userRole={user.role} 
+                            onEdit={openEditModal}
+                            onDelete={openDeleteModal}
+                            onTransfer={openTransferModal}
+                            onAddMember={openAddModal}
+                          />
                        </motion.div>
                       ) : activeTab === 'stats' ? (
                         <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
@@ -781,7 +857,10 @@ export default function App() {
                   className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-lg px-3.5 py-2.5 font-display text-[14px] focus:border-[var(--accent-color)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-color)]/10"
                 >
                   <option value="">Select Cluster...</option>
-                  {uniqueClusters.map(k => <option key={sk("opt-cl", k)} value={k}>{k}</option>)}
+                  {uniqueClusters.map(k => {
+                    const { clusters } = getCounts(formData.wave || WAVE_1);
+                    return <option key={sk("opt-cl", k)} value={k}>{`Cluster ${k} (${clusters[k] || 0})`}</option>
+                  })}
                 </select>
                 {formErrors.cluster && <p className="text-[#ef4444] text-[11px] mt-1">{formErrors.cluster}</p>}
               </div>
@@ -797,7 +876,10 @@ export default function App() {
                   className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-lg px-3.5 py-2.5 font-display text-[14px] focus:border-[var(--accent-color)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-color)]/10"
                 >
                   <option value="">Select Team...</option>
-                  {UNIQUE_TEAMS.map(t => <option key={sk("opt-tm", t)} value={t}>{t}</option>)}
+                  {UNIQUE_TEAMS.map(t => {
+                    const { teams } = getCounts(formData.wave || WAVE_1, formData.cluster);
+                    return <option key={sk("opt-tm", t)} value={t}>{`${t} (${teams[t] || 0})`}</option>
+                  })}
                 </select>
                 {formErrors.team && <p className="text-[#ef4444] text-[11px] mt-1">{formErrors.team}</p>}
               </div>
@@ -823,6 +905,69 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* Transfer Modal */}
+      {isTransferModalOpen && transferMember && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 backdrop-blur-md">
+          <div className="bg-[var(--bg-card)] rounded-[24px] p-8 w-full max-w-sm shadow-2xl border-t-8 border-[#454E96]">
+             <h4 className="text-xl font-black mb-1 text-[var(--text-primary)]">Transfer Member</h4>
+             <p className="text-sm text-[var(--text-secondary)] mb-8 font-medium">Move <span className="text-[#454E96] font-bold">{transferMember.name}</span> to:</p>
+             
+             <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-gray-400">Target Wave</label>
+                  <select 
+                    value={transferData.wave}
+                    onChange={e => setTransferData({...transferData, wave: e.target.value})}
+                    className="w-full p-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl font-bold outline-none text-[var(--text-primary)]"
+                  >
+                    <option value={WAVE_1}>{WAVE_LABELS[WAVE_1]}</option>
+                    <option value={WAVE_2}>{WAVE_LABELS[WAVE_2]}</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-400">Cluster</label>
+                    <select 
+                      value={transferData.cluster}
+                      onChange={e => setTransferData({...transferData, cluster: e.target.value})}
+                      className="w-full p-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl font-bold outline-none text-[var(--text-primary)]"
+                    >
+                      {uniqueClusters.map(c => {
+                        const { clusters } = getCounts(transferData.wave);
+                        return <option key={sk("movecl", c)} value={c}>{`${c} (${clusters[c] || 0})`}</option>
+                      })}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-400">Team</label>
+                    <select 
+                      value={transferData.team}
+                      onChange={e => setTransferData({...transferData, team: e.target.value})}
+                      className="w-full p-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl font-bold outline-none text-[var(--text-primary)]"
+                    >
+                      {UNIQUE_TEAMS.map(t => {
+                        const { teams } = getCounts(transferData.wave, transferData.cluster);
+                        return <option key={sk("movetm", t)} value={t}>{`${t} (${teams[t] || 0})`}</option>
+                      })}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                   <button 
+                     onClick={handleTransferMember}
+                     className="flex-1 py-3 bg-[#454E96] text-white rounded-xl font-black shadow-lg shadow-[#454E96]/20 active:scale-95 transition-all"
+                   >
+                     CONFIRM MOVE
+                   </button>
+                   <button onClick={() => setIsTransferModalOpen(false)} className="px-6 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold hover:bg-gray-200 transition-all">Cancel</button>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && deletingMember && (
         <div className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center p-4">

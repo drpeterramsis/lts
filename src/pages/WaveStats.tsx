@@ -59,23 +59,6 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
   const wave1Grid = useMemo(() => buildWaveGrid(employees, WAVE_1), [employees]);
   const wave2Grid = useMemo(() => buildWaveGrid(employees, WAVE_2), [employees]);
 
-  // Row 3 Data: Cluster Breakdown
-  const clusterTotals = useMemo(() => {
-    const totals: Record<string, any> = {};
-    employees.forEach(emp => {
-      const c = String(emp.cluster || '0');
-      if (!totals[c]) {
-        totals[c] = { A: 0, B: 0, C: 0, D: 0, total: 0 };
-      }
-      const t = String(emp.team || 'X');
-      if (['A', 'B', 'C', 'D'].includes(t)) {
-        totals[c][t]++;
-      }
-      totals[c].total++;
-    });
-    return totals;
-  }, [employees]);
-
   // Transfer Handler
   const handleTransfer = (emp: Employee, newWave: string, newCluster: string, newTeam: string) => {
     if (!onUpdateEmployees) return;
@@ -128,13 +111,22 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
                     <div className="flex-1 flex gap-2">
                        {UNIQUE_TEAMS.map(team => {
                          const members = clusterTeams[team] || [];
+                         const teamColors: Record<string, any> = {
+                           A: { bg: 'rgba(12,72,138,0.12)', border: 'rgba(12,72,138,0.35)', text: '#0C488A', emoji: '🔵' },
+                           B: { bg: 'rgba(69,78,150,0.12)', border: 'rgba(69,78,150,0.35)', text: '#454E96', emoji: '🟣' },
+                           C: { bg: 'rgba(122,58,148,0.12)', border: 'rgba(122,58,148,0.35)', text: '#7A3A94', emoji: '🟪' },
+                           D: { bg: 'rgba(213,121,164,0.12)', border: 'rgba(213,121,164,0.35)', text: '#D579A4', emoji: '🌸' },
+                         };
+                         const tc = teamColors[team] || teamColors.A;
+
                          return (
                            <button 
                              key={sk("wvclt", wi, cluster, team)}
                              onClick={() => setSelectedTeam({ cluster, team, wave: waveSection.wave, members })}
-                             className={`flex-1 py-1.5 px-2 rounded-lg text-[12px] font-bold border transition-all ${members.length > 0 ? 'bg-[#454E96]/5 border-[#454E96]/20 text-[#454E96] hover:bg-[#454E96]/10' : 'bg-gray-50 border-gray-100 text-gray-300 pointer-events-none'}`}
+                             className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-[10px] text-[13px] font-extrabold border transition-all min-w-[72px] ${members.length > 0 ? '' : 'bg-gray-50 border-gray-100 text-gray-300 opacity-40 pointer-events-none'}`}
+                             style={members.length > 0 ? { backgroundColor: tc.bg, borderColor: tc.border, color: tc.text } : {}}
                            >
-                             [{team}: {members.length}]
+                             {tc.emoji} {team} {members.length}
                            </button>
                          );
                        })}
@@ -147,48 +139,6 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
           </div>
           );
         })}
-      </div>
-
-      {/* ROW 3: Cluster Breakdown Table */}
-      <div className="bg-white border border-[#E0E0E0] rounded-[16px] shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-[#E0E0E0]">
-          <h3 className="font-bold text-[15px] uppercase tracking-wider">Cluster Breakdown (All Waves)</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-[#454E96] text-white">
-                <th className="p-3 text-sm">Cluster</th>
-                <th className="p-3 text-sm">Team A</th>
-                <th className="p-3 text-sm">Team B</th>
-                <th className="p-3 text-sm">Team C</th>
-                <th className="p-3 text-sm">Team D</th>
-                <th className="p-3 text-sm">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {uniqueClusters.map(cluster => (
-                <tr key={sk("cbtrow", cluster)} className="border-b last:border-0 hover:bg-gray-50 text-center">
-                  <td className="p-3 font-bold text-[#7A3A94]">Cluster {cluster}</td>
-                  <td className="p-3 text-[14px]">{clusterTotals[cluster]?.A || 0}</td>
-                  <td className="p-3 text-[14px]">{clusterTotals[cluster]?.B || 0}</td>
-                  <td className="p-3 text-[14px]">{clusterTotals[cluster]?.C || 0}</td>
-                  <td className="p-3 text-[14px]">{clusterTotals[cluster]?.D || 0}</td>
-                  <td className="p-3 text-[14px]">{clusterTotals[cluster]?.total || 0}</td>
-                </tr>
-              ))}
-              <tr className="bg-[#EEF2FF] font-bold text-center">
-                <td className="p-3">Grand Total</td>
-                {UNIQUE_TEAMS.map(t => (
-                  <td key={sk("gt", t)} className="p-3">
-                    {Object.values(clusterTotals).reduce((sum, c: any) => sum + (c[t] || 0), 0)}
-                  </td>
-                ))}
-                <td className="p-3">{stats.total}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </div>
 
       {/* Member Modal (Clicking table cell) */}
