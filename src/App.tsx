@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { SeatingMap } from './components/SeatingMap';
 import { WaveStats } from './pages/WaveStats';
-import { sortWaves } from './utils/waveUtils';
+import { parseWave } from './utils/wave';
 import { can } from './utils/rbac';
 import { sk } from './utils/safeKey';
 import { WAVE_1, WAVE_2, WAVE_LABELS, UNIQUE_TEAMS } from './constants/waves';
@@ -182,7 +182,7 @@ export default function App() {
       const na = Number(a);
       const nb = Number(b);
       if (!isNaN(na) && !isNaN(nb)) return na - nb;
-      return a.localeCompare(b);
+      return (a as string).localeCompare(b as string);
     });
   }, [employees]);
 
@@ -596,8 +596,7 @@ export default function App() {
                                 <span>📅</span> WAVE DATE
                             </div>
                             <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none">
-                              {/* Assume exact string split just like before on ' ⏰ ' to keep the format */}
-                              {(user.wave || '').split(' ⏰ ')[0]?.trim()}
+                              {parseWave(user.wave).date}
                             </p>
                         </div>
 
@@ -607,7 +606,7 @@ export default function App() {
                                 <span>⏰</span> WAVE TIME
                             </div>
                             <p className="text-[22px] font-display font-bold text-[var(--accent-color)] leading-none">
-                              {(user.wave || '').split(' ⏰ ')[1]?.trim()}
+                              {parseWave(user.wave).time}
                             </p>
                         </div>
 

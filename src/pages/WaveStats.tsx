@@ -4,6 +4,7 @@ import { Pencil, Trash2, ArrowUpRight } from 'lucide-react';
 import { getTeamColor } from '../components/SearchEngine';
 import { sk } from '../utils/safeKey';
 import { WAVE_1, WAVE_2, UNIQUE_TEAMS, WAVE_LABELS, matchWave } from '../constants/waves';
+import { parseWave } from '../utils/wave';
 
 interface WaveStatsProps {
   employees: Employee[];
@@ -28,7 +29,7 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
       const na = Number(a);
       const nb = Number(b);
       if (!isNaN(na) && !isNaN(nb)) return na - nb;
-      return a.localeCompare(b);
+      return (a as string).localeCompare(b as string);
     });
   }, [employees]);
 
@@ -106,18 +107,20 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
       {/* ROW 2: Active Table View (Both Waves) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {[
-          { label: '🟣 WAVE 1 — 27 Apr 09:30 AM', wave: WAVE_1, grid: wave1Grid },
-          { label: '🟣 WAVE 2 — 27 Apr 12:30 PM', wave: WAVE_2, grid: wave2Grid }
-        ].map((waveSection, wi) => (
-          <div key={sk("wvsec", wi)} className="bg-white border border-[#E0E0E0] rounded-[16px] p-6 shadow-sm overflow-hidden">
-            <h3 className="font-bold text-[15px] mb-6 flex items-center gap-2">
-               {waveSection.label}
-            </h3>
-            <div className="space-y-4">
+          { wave: WAVE_1, grid: wave1Grid },
+          { wave: WAVE_2, grid: wave2Grid }
+        ].map((waveSection, wi) => {
+          const { date, time } = parseWave(waveSection.wave);
+          return (
+            <div key={sk("wvsec", wi)} className="bg-white border border-[#E0E0E0] rounded-[16px] p-6 shadow-sm overflow-hidden">
+              <h3 className="font-bold text-[15px] mb-6 flex items-center gap-2">
+                 🟣 {date} {time}
+              </h3>
+              <div className="space-y-4">
               {uniqueClusters.map(cluster => {
                 const clusterTeams = waveSection.grid[cluster] || {};
                 let clusterTotal = 0;
-                Object.values(clusterTeams).forEach(arr => clusterTotal += arr.length);
+                Object.values(clusterTeams).forEach((arr: any) => clusterTotal += arr.length);
 
                 return (
                   <div key={sk("wvcl", wi, cluster)} className="flex items-center gap-4">
@@ -142,7 +145,8 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ROW 3: Cluster Breakdown Table */}
@@ -193,7 +197,7 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
            <div className="bg-white rounded-[20px] p-6 w-full max-w-md shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="mb-6">
                 <h4 className="text-xl font-black text-[#454E96]">Cluster {selectedTeam.cluster} • Team {selectedTeam.team}</h4>
-                <p className="text-[12px] text-gray-500 font-bold uppercase mt-1">Wave: {selectedTeam.wave}</p>
+                <p className="text-[12px] text-gray-500 font-bold uppercase mt-1">Wave: {parseWave(selectedTeam.wave).date} {parseWave(selectedTeam.wave).time}</p>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-6 max-h-[400px]">

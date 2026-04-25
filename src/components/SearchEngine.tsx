@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search as SearchIcon, X, Filter, Pencil, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Employee } from '../types';
-import { parseWave } from '../utils/waveUtils';
+import { parseWave } from '../utils/wave';
 import { sk } from '../utils/safeKey';
 
 interface SearchEngineProps {

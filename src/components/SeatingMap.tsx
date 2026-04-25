@@ -5,6 +5,7 @@ import { Employee } from '../types';
 import { getTeamColor } from './SearchEngine';
 import { sk } from '../utils/safeKey';
 import { WAVE_1, WAVE_2, WAVE_LABELS, matchWave } from '../constants/waves';
+import { parseWave } from '../utils/wave';
 
 interface SeatingMapProps {
   employees: Employee[];
@@ -27,7 +28,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
         const na = Number(a);
         const nb = Number(b);
         if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return a.localeCompare(b);
+        return (a as string).localeCompare(b as string);
       })
     : [];
 
@@ -77,7 +78,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
         const numA = Number(a);
         const numB = Number(b);
         if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-        return a.localeCompare(b);
+        return (a as string).localeCompare(b as string);
     });
 
     return { clusterGroups, sortedClusters };
@@ -99,7 +100,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-[22px] font-bold text-[var(--accent-color)] font-display">🗺️ Wave {selectedWave} — Seating Map</h2>
+        <h2 className="text-[22px] font-bold text-[var(--accent-color)] font-display">🗺️ {parseWave(selectedWave).date} {parseWave(selectedWave).time} — Seating Map</h2>
         <p className="text-[13px] text-[var(--text-secondary)] mb-6">Your table is highlighted</p>
       </div>
 
@@ -211,7 +212,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                 <span className="w-4 h-4 rounded-full" style={{ backgroundColor: getTeamColor(selectedTeam.team) }}></span>
                 {selectedTeam.team}
               </h4>
-              <p className="text-[var(--text-secondary)] text-[12px] mb-4">Cluster {selectedTeam.cluster} • Wave {selectedWave}</p>
+              <p className="text-[var(--text-secondary)] text-[12px] mb-4">Cluster {selectedTeam.cluster} • {parseWave(selectedWave).date} {parseWave(selectedWave).time}</p>
               <div className="space-y-3 mb-6 mt-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
                 {selectedTeam.members.map((m) => {
                   const isCurrentUser = loggedInEmployee && String(m.id).trim() === String(loggedInEmployee.id).trim();

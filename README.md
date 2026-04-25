@@ -43,6 +43,10 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.016 - Fixed: wave emoji encoding issue (â°) breaking layout
+           Fixed: parseWave no longer depends on ⏰ split
+           Added: normalizeWave() detects wave by time markers
+           Updated: all wave displays use robust parseWave()
 v2.0.015 - Fixed: wave filter now uses time-based matching (09:30/12:30) via matchWave()
            Fixed: normalizeEmployee normalizes wave to exact constant
            Fixed: facilitator map now shows all clusters and tables

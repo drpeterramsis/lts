@@ -8,6 +8,16 @@ export const WAVE_LABELS = {
 
 export const UNIQUE_TEAMS = ["A", "B", "C", "D"];
 
+export function normalizeWave(rawWave) {
+  const s = String(rawWave ?? "").toLowerCase();
+
+  // Identify by time markers only (robust against encoding)
+  if (s.includes("09:30")) return WAVE_1;
+  if (s.includes("12:30")) return WAVE_2;
+
+  return String(rawWave ?? "").trim();
+}
+
 // Smart wave matcher — handles emoji/spacing variants
 export function matchWave(empWave, targetWave) {
   if (!empWave || !targetWave) return false;
