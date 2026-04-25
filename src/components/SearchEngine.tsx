@@ -3,6 +3,7 @@ import { Search as SearchIcon, X, Filter, Pencil, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Employee } from '../types';
 import { parseWave } from '../utils/waveUtils';
+import { sk } from '../utils/safeKey';
 
 interface SearchEngineProps {
   data: Employee[];
@@ -79,7 +80,7 @@ export const SearchEngine = ({ data, onEdit, onDelete, userRole }: SearchEngineP
               <button 
                 onClick={() => setSearchTerm('')}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[var(--border-color)] rounded-full transition-colors"
-              >
+               >
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -95,7 +96,7 @@ export const SearchEngine = ({ data, onEdit, onDelete, userRole }: SearchEngineP
               }}
               className="pl-11 pr-8 py-3.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl appearance-none focus:ring-2 focus:ring-[var(--accent-color)] font-bold outline-none cursor-pointer"
             >
-              {fields.map(f => <option key={f} value={f}>{f}</option>)}
+              {fields.map(f => <option key={sk("sf", f)} value={f}>{f}</option>)}
             </select>
           </div>
         </div>
@@ -120,7 +121,7 @@ export const SearchEngine = ({ data, onEdit, onDelete, userRole }: SearchEngineP
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {results.map((emp, idx) => (
                   <motion.div 
-                    key={emp["Employee ID"] + idx} 
+                    key={sk("search", emp.id, idx)} 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: Math.min(idx * 0.03, 0.3) }}
@@ -163,6 +164,7 @@ export const SearchEngine = ({ data, onEdit, onDelete, userRole }: SearchEngineP
               </div>
             ) : (
               <motion.div 
+                key="no-results"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="py-20 text-center bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[2.5rem]"

@@ -3,56 +3,45 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo, FormEvent } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   LogOut, 
   User as UserIcon, 
-  Building2, 
   Building,
-  Briefcase, 
-  Waves, 
-  Users, 
-  LayoutDashboard,
-  Search as SearchIcon,
-  BarChart3,
   CheckCircle2,
   XCircle,
   Shield,
   ArrowRight,
   Hash,
   UserPlus,
-  Save,
   Pencil,
   Trash2,
-  Map as MapIcon,
-  MapPin
+  MapPin,
+  Users,
+  Save
 } from 'lucide-react';
 import { SeatingMap } from './components/SeatingMap';
 import { WaveStats } from './pages/WaveStats';
 import { sortWaves } from './utils/waveUtils';
+import { can } from './utils/rbac';
+import { sk } from './utils/safeKey';
+import { WAVE_1, WAVE_2, WAVE_LABELS, UNIQUE_TEAMS } from './constants/waves';
 
 // Data and Types
-import employeeData from './data/employees_lts.json';
-import type { Employee, ThemeMode } from './types';
-import { loadEmployees as fetchEmployees } from './utils/githubSync';
-import { getTeamLabel, getClusterLabel } from './utils/dataUtils';
-
+import type { Employee } from './types';
+import { loadEmployees as fetchEmployees, saveToGitHub } from './utils/githubSync';
+import { Footer } from './components/Footer';
+import { SearchEngine } from './components/SearchEngine';
+import { DrillDown } from './components/DrillDown';
 
 const getRole = (employeeNumber: string): 'employee' | 'facilitator' => {
   if (employeeNumber === "000000") return "facilitator";
   return "employee";
 };
 
-// Components
-import { ThemeToggle } from './components/ThemeToggle';
-import { Footer } from './components/Footer';
-import { SearchEngine } from './components/SearchEngine';
-import { DrillDown } from './components/DrillDown';
-
 export default function App() {
   const [user, setUser] = useState<Employee | null>(null);
-  const [theme, setTheme] = useState<ThemeMode>('light');
   const [empNumber, setEmpNumber] = useState('');
   const [loginStep, setLoginStep] = useState<1 | 2>(1);
   const [foundEmployee, setFoundEmployee] = useState<Employee | null>(null);
@@ -79,15 +68,8 @@ export default function App() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Initialization: Theme and Session
+  // Initialization: Session
   useEffect(() => {
-    // Theme
-    const savedTheme = localStorage.getItem('themeMode') as ThemeMode;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    }
-
     // Session
     const savedSession = localStorage.getItem('evaSession');
     if (savedSession) {
@@ -110,13 +92,6 @@ export default function App() {
     };
     syncData();
   }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('themeMode', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   // Auth Handlers
   const handleLogin = (inputId: string) => {
@@ -194,8 +169,23 @@ export default function App() {
   };
 
   // Extract unique values
-  const uniqueWaves = useMemo(() => sortWaves(Array.from(new Set(employees.map(e => e.Wave)))), [employees]);
-  const uniqueClusters = useMemo(() => Array.from(new Set(employees.map(e => String(e.Cluster)))).sort((a: string, b: string) => a.localeCompare(b, undefined, {numeric: true})), [employees]);
+  const uniqueWaves = [WAVE_1, WAVE_2];
+
+  const uniqueClusters = useMemo(() => {
+    if (!employees || employees.length === 0) return [];
+    return Array.from(
+      new Set(
+        employees
+          .map(e => String(e.cluster ?? "").trim())
+          .filter(Boolean)
+      )
+    ).sort((a, b) => {
+      const na = Number(a);
+      const nb = Number(b);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return a.localeCompare(b);
+    });
+  }, [employees]);
 
   const openAddModal = () => {
     setEditingMember(null);
@@ -209,11 +199,11 @@ export default function App() {
     
     setFormData({
       id: member.id,
-      name: member.name,
-      email: member.email,
-      wave: member.wave,
-      cluster: member.cluster,
-      team: member.team
+      name: member.name || "",
+      email: member.email || "",
+      wave: member.wave || uniqueWaves[0] || "",
+      cluster: member.cluster || "1",
+      team: member.team || "A"
     });
     
     setFormErrors({});
@@ -513,7 +503,7 @@ export default function App() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                     <ThemeToggle theme={theme} onToggle={toggleTheme} />
+                     <button onClick={handleLogout} className="text-white/75 hover:text-white"><LogOut className="w-5 h-5"/></button>
                   </div>
                </div>
                
@@ -525,27 +515,29 @@ export default function App() {
                  >
                    Map
                  </button>
-                 {(user.role === 'facilitator' || user.role === 'superuser') && (
-                   <>
-                     <button 
-                       onClick={() => setActiveTab('drill')}
-                       className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'drill' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
-                     >
-                       Drill-Down
-                     </button>
-                     <button 
-                       onClick={() => setActiveTab('search')}
-                       className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'search' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
-                     >
-                       Search
-                     </button>
-                     <button 
-                       onClick={() => setActiveTab('stats')}
-                       className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'stats' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
-                     >
-                       Stats
-                     </button>
-                   </>
+                 {can('drillDown', user.role) && (
+                   <button 
+                     onClick={() => setActiveTab('drill')}
+                     className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'drill' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                   >
+                     Drill-Down
+                   </button>
+                 )}
+                 {can('search', user.role) && (
+                   <button 
+                     onClick={() => setActiveTab('search')}
+                     className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'search' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                   >
+                     Search
+                   </button>
+                 )}
+                 {can('stats', user.role) && (
+                   <button 
+                     onClick={() => setActiveTab('stats')}
+                     className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'stats' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                   >
+                     Stats
+                   </button>
                  )}
                </nav>
             </header>
@@ -597,7 +589,7 @@ export default function App() {
                            </h3>
                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
                               <span className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--text-secondary)]">
-                                 <Building className="w-3.5 h-3.5" /> Email: {user.email}
+                                 <Building className="w-3.5 h-3.5" /> Email: {user.email || "—"}
                               </span>
                            </div>
                         </div>
@@ -686,7 +678,10 @@ export default function App() {
                        </motion.div>
                       ) : activeTab === 'stats' ? (
                         <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                          <WaveStats employees={employees} userRole={user.role} onEdit={openEditModal} onDelete={openDeleteModal} />
+                          <WaveStats employees={employees} userRole={user.role} onEdit={openEditModal} onDelete={openDeleteModal} onUpdateEmployees={(updated) => {
+                            setEmployees(updated);
+                            saveToGitHub(updated);
+                          }} />
                         </motion.div>
                     ) : (
                       <motion.div key="search" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
@@ -796,7 +791,7 @@ export default function App() {
                   className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-lg px-3.5 py-2.5 font-display text-[14px] focus:border-[var(--accent-color)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-color)]/10"
                 >
                   <option value="">Select Wave...</option>
-                  {uniqueWaves.map(w => <option key={w} value={w}>{w}</option>)}
+                  {uniqueWaves.map((w, wi) => <option key={sk("opt-wv", wi)} value={w}>{WAVE_LABELS[w as keyof typeof WAVE_LABELS]}</option>)}
                 </select>
                 {formErrors.wave && <p className="text-[#ef4444] text-[11px] mt-1">{formErrors.wave}</p>}
               </div>
@@ -812,7 +807,7 @@ export default function App() {
                   className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-lg px-3.5 py-2.5 font-display text-[14px] focus:border-[var(--accent-color)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-color)]/10"
                 >
                   <option value="">Select Cluster...</option>
-                  {uniqueClusters.map(k => <option key={k} value={k}>{k}</option>)}
+                  {uniqueClusters.map(k => <option key={sk("opt-cl", k)} value={k}>{k}</option>)}
                 </select>
                 {formErrors.cluster && <p className="text-[#ef4444] text-[11px] mt-1">{formErrors.cluster}</p>}
               </div>
@@ -828,10 +823,7 @@ export default function App() {
                   className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-lg px-3.5 py-2.5 font-display text-[14px] focus:border-[var(--accent-color)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-color)]/10"
                 >
                   <option value="">Select Team...</option>
-                  <option value="Team A">Team A</option>
-                  <option value="Team B">Team B</option>
-                  <option value="Team C">Team C</option>
-                  <option value="Team D">Team D</option>
+                  {UNIQUE_TEAMS.map(t => <option key={sk("opt-tm", t)} value={t}>{t}</option>)}
                 </select>
                 {formErrors.team && <p className="text-[#ef4444] text-[11px] mt-1">{formErrors.team}</p>}
               </div>

@@ -1,4 +1,5 @@
 import { LogOut } from 'lucide-react';
+import { APP_VERSION } from '../version';
 
 interface FooterProps {
   onLogout?: () => void;
@@ -13,7 +14,7 @@ export const Footer = ({ onLogout, showLogout }: FooterProps) => {
       </div>
 
       <div className="text-[13px] text-white font-bold opacity-90">
-        v2.0.006
+        Limitless Simulation © 2025 — {APP_VERSION}
       </div>
 
       <div className="flex items-center">
