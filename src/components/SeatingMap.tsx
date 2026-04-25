@@ -116,7 +116,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
       ) : (
         sortedClusters.map(cluster => (
           <div key={sk("cl", cluster)} className="w-full">
-            <h3 className="font-bold text-lg mb-4 text-[var(--text-primary)]">Cluster {cluster}</h3>
+            <h3 className="inline-block bg-[#7A3A94] text-white rounded-[20px] px-4 py-1 font-bold text-[13px] mb-4">Cluster {cluster}</h3>
             <div className="flex flex-wrap gap-4">
               {clusterGroups[cluster].map((table) => {
                 const teamMembers = table.members;
@@ -150,7 +150,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                       {isUserTable && <div className="absolute top-0 right-0 text-[#D579A4] text-[10px] font-bold px-2 py-0.5" style={{ color: '#D579A4' }}>YOU ARE HERE</div>}
                       <div className="flex items-center gap-2 mb-2">
                         <span className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }}></span>
-                        <h4 className="font-bold text-[14px]">Table {table.team}</h4>
+                        <h4 className="font-bold text-[14px]">{table.team}</h4>
                       </div>
                       <p className="text-[12px] text-[var(--text-secondary)]">{teamMembers.length} members</p>
                     </div>

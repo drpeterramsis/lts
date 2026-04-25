@@ -1,4 +1,4 @@
-export type EmployeeRole = 'employee' | 'facilitator' | 'superuser';
+export type EmployeeRole = 'employee' | 'facilitator';
 
 export type Employee = {
     id: string;

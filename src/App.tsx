@@ -39,15 +39,8 @@ import { loadEmployees as fetchEmployees } from './utils/githubSync';
 import { getTeamLabel, getClusterLabel } from './utils/dataUtils';
 
 
-// ⭐ SUPERUSER IDs — add or remove Employee Numbers here
-const SUPERUSER_IDS = [
-  "4639",
-  // add more IDs here easily
-];
-
-const getRole = (employeeNumber: string): string => {
+const getRole = (employeeNumber: string): 'employee' | 'facilitator' => {
   if (employeeNumber === "000000") return "facilitator";
-  if (SUPERUSER_IDS.includes(employeeNumber)) return "superuser";
   return "employee";
 };
 
@@ -126,47 +119,58 @@ export default function App() {
   };
 
   // Auth Handlers
-  const handleStep1 = (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    const trimmedId = empNumber.trim();
+  const handleLogin = (inputId: string) => {
+    const cleanId = String(inputId).trim();
 
-    if (trimmedId === "000000") {
-      setFoundEmployee({
-        id: "000000",
-        name: "Facilitator Access",
-        email: "admin@eva.com",
-        wave: "27 April ⏰ 09:30 AM - 11:30 AM",
-        cluster: "ALL",
-        team: "ALL",
-        role: "facilitator"
-      } as Employee);
-      setLoginStep(2);
+    // Check facilitator first
+    if (cleanId === "000000") {
+      const facilitator: Employee = {
+        id:      "000000",
+        name:    "Facilitator",
+        email:   "",
+        team:    "",
+        cluster: "",
+        wave:    "",
+        role:    "facilitator",
+      };
+      setUser(facilitator);
+      localStorage.setItem('evaSession', JSON.stringify(facilitator));
+      setActiveTab('map');
       return;
     }
 
-    const found = employees.find(emp => String(emp.id).trim() === trimmedId);
-    if (found) {
-      setFoundEmployee(found);
-      setLoginStep(2);
-    } else {
-      setError('Invalid Employee ID, please try again');
-    }
-  };
+    // Check employee list
+    const found = employees.find(
+      e => String(e.id).trim() === cleanId
+    );
 
-  const confirmLogin = () => {
+    if (!found) {
+      setError("ID not found. Please check and try again.");
+      return;
+    }
+    
+    setError('');
+    setFoundEmployee(found);
+    setLoginStep(2);
+  }
+
+  const handleConfirm = () => {
     if (foundEmployee) {
-      const role = getRole(foundEmployee.id);
-      const userWithRole = { ...foundEmployee, role };
-      setUser(userWithRole);
-      localStorage.setItem('evaSession', JSON.stringify(userWithRole));
+      const employeeUser: Employee = {
+        ...foundEmployee,
+        role: "employee",
+      };
+      setUser(employeeUser);
+      localStorage.setItem('evaSession', JSON.stringify(employeeUser));
+      setActiveTab('map');
     }
-  };
+  }
 
-  const cancelLogin = () => {
-    setLoginStep(1);
+  const handleReset = () => {
     setFoundEmployee(null);
     setEmpNumber('');
+    setError('');
+    setLoginStep(1);
   };
 
   const handleLogout = () => {
@@ -396,7 +400,7 @@ export default function App() {
                 <AnimatePresence mode="wait">
                   {loginStep === 1 ? (
                     <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                      <form onSubmit={handleStep1} className="space-y-6">
+                      <form onSubmit={(e) => { e.preventDefault(); handleLogin(empNumber); }} className="space-y-6">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-dim-gray)] ml-1">Employee Number</label>
                           <input
@@ -445,10 +449,10 @@ export default function App() {
                           <p className="text-sm text-[var(--text-secondary)] font-medium">Is this you? Please confirm to continue.</p>
                        </div>
                        <div className="grid grid-cols-2 gap-3">
-                          <button onClick={confirmLogin} className="py-4 btn-primary flex items-center justify-center gap-2 text-xs">
+                          <button onClick={handleConfirm} className="py-4 btn-primary flex items-center justify-center gap-2 text-xs">
                              <CheckCircle2 className="w-4 h-4" /> YES, IT'S ME
                           </button>
-                          <button onClick={cancelLogin} className="py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-black flex items-center justify-center gap-2 text-xs hover:bg-red-500/20">
+                          <button onClick={handleReset} className="py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-black flex items-center justify-center gap-2 text-xs hover:bg-red-500/20">
                              <XCircle className="w-4 h-4" /> NO, WRONG ID
                           </button>
                        </div>

@@ -1,4 +1,4 @@
-# Limitless Training Simulation (v2.0.010)
+# Limitless Training Simulation (v2.0.012)
 
  A professional, secure employee dashboard for the Limitless Training Simulation (LTS). This application allows members to sign in using their Employee ID to view their current wave assignment, cluster, and team details.
 
@@ -43,6 +43,13 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.012 - Fixed: search results now show all employee fields
+           Fixed: search runs on normalized data (lowercase fields)
+           Fixed: search card reads emp.name/email/team/cluster/wave
+           Added: facilitator stats page with full breakdown
+           Stats: total, per-wave, per-cluster, per-team, table sizes
+           Map: removed word "Table" from table cards (letter only)
+           Map: cluster headers now purple (#7A3A94) for visibility
 v2.0.010 - Fixed: NaN duplicate key in SeatingMap (root cause: parseInt on cluster)
            Fixed: sk() helper added — sanitizes all key values
            Fixed: normalizeEmployee uses String() never parseInt/parseFloat

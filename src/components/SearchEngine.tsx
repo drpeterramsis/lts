@@ -42,17 +42,22 @@ export const SearchEngine = ({ data, onEdit, onDelete, userRole }: SearchEngineP
     if (searchTerm.length < minChars) return [];
     
     const filtered = data.filter(emp => {
-      const targetValue = filterField === 'All Fields' 
-        ? Object.values(emp).join(' ').toLowerCase()
-        : String(emp[filterField as keyof Employee] || '').toLowerCase();
-        
-      return targetValue.includes(searchTerm.toLowerCase());
+      const q = searchTerm.toLowerCase().trim();
+      if (!q) return false;
+      return (
+        String(emp.id      || "").toLowerCase().includes(q) ||
+        String(emp.name    || "").toLowerCase().includes(q) ||
+        String(emp.email   || "").toLowerCase().includes(q) ||
+        String(emp.team    || "").toLowerCase().includes(q) ||
+        String(emp.cluster || "").toLowerCase().includes(q) ||
+        String(emp.wave    || "").toLowerCase().includes(q)
+      );
     });
 
     // Sort by wave
     return filtered.sort((a, b) => {
-      const wa = parseWave(a.Wave);
-      const wb = parseWave(b.Wave);
+      const wa = parseWave(a.wave);
+      const wb = parseWave(b.wave);
       return wa.time.localeCompare(wb.time);
     });
   }, [searchTerm, filterField, data, minChars]);
@@ -140,18 +145,18 @@ export const SearchEngine = ({ data, onEdit, onDelete, userRole }: SearchEngineP
                        </div>
                     )}
                     <div className="flex justify-between items-start mb-3">
-                      <h4 className="font-black text-lg leading-tight">{emp.Name}</h4>
+                      <h4 className="font-black text-lg leading-tight uppercase">{emp.name}</h4>
                       <span className="text-[10px] font-black bg-[var(--accent-purple)]/10 px-2 py-1 rounded-md text-[var(--accent-purple)] border border-[var(--accent-purple)]/20 self-start mt-1">
-                        {emp["Employee ID"]}
+                        {emp.id || "—"}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-y-2 text-xs">
-                      <div className="col-span-2"><span className="text-[var(--text-secondary)]">Email:</span> <p className="font-bold">{emp.Email}</p></div>
-                      <div><span className="text-[var(--text-secondary)]">Cluster:</span> <p className="font-bold">{emp.Cluster}</p></div>
+                      <div className="col-span-2"><span className="text-[var(--text-secondary)]">Email:</span> <p className="font-bold">{emp.email || "—"}</p></div>
+                      <div><span className="text-[var(--text-secondary)]">Cluster:</span> <p className="font-bold">{emp.cluster || "—"}</p></div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
-                       <span className="text-[9px] font-black px-2 py-1 bg-[var(--accent-purple)]/5 text-[var(--accent-purple)] rounded-full border border-[var(--accent-purple)]/20">{emp.Wave}</span>
-                       <span className="text-[9px] font-black px-2 py-1 rounded-full text-white" style={{ backgroundColor: getTeamColor(emp.Team) }}>{emp.Team}</span>
+                       <span className="text-[9px] font-black px-2 py-1 bg-[var(--accent-purple)]/5 text-[var(--accent-purple)] rounded-full border border-[var(--accent-purple)]/20">{emp.wave || "—"}</span>
+                       <span className="text-[9px] font-black px-2 py-1 rounded-full text-white" style={{ backgroundColor: getTeamColor(emp.team) }}>{emp.team || "—"}</span>
                     </div>
                   </motion.div>
                 ))}
