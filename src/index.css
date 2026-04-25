@@ -14,6 +14,30 @@
 
 @layer base {
   :root {
+    --gradient-brand: linear-gradient(
+      90deg,
+      #0C488A 0%,
+      #454E96 35%,
+      #7A3A94 70%,
+      #D579A4 100%
+    );
+    --gradient-gray: linear-gradient(
+      135deg,
+      #F8F7F7 0%,
+      #D0D0D0 60%,
+      #A5A5A5 100%
+    );
+    --color-royal-blue: #0C488A;
+    --color-indigo:     #454E96;
+    --color-purple:     #7A3A94;
+    --color-rose:       #D579A4;
+    --color-white:      #FFFFFF;
+    --color-off-white:  #F8F7F7;
+    --color-light-gray: #E9E9E9;
+    --color-silver:     #D0D0D0;
+    --color-dim-gray:   #6E6E6E;
+    --color-near-black: #141414;
+
     --bg-main: #F8F7F7;
     --bg-card: #ffffff;
     --text-primary: #141414;
@@ -53,3 +77,64 @@
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #E9E9E9; border-radius: 10px; }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #353335; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D0D0D0; }
+
+.btn-primary {
+  background: var(--gradient-brand) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 700 !important;
+  transition: all 0.2s !important;
+}
+.btn-primary:hover {
+  opacity: 0.88 !important;
+  box-shadow: 0 4px 18px rgba(68, 78, 150, 0.35) !important;
+}
+.btn-primary:active {
+  opacity: 0.78 !important;
+}
+.btn-primary:-moz-focusring {
+  outline: none;
+}
+
+.card-surface {
+  background: var(--gradient-gray);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.avatar-ring {
+  background: var(--gradient-brand);
+  padding: 3px;
+  border-radius: 50%;
+}
+.avatar-ring img, .avatar-ring .inner {
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.input-ring:focus {
+  box-shadow: 0 0 0 3px rgba(68, 78, 150, 0.3) !important;
+  border-color: var(--color-indigo) !important;
+}
+
+.selected-row {
+  border-left: 4px solid transparent !important;
+  background-image: linear-gradient(var(--bg-card), var(--bg-card)), var(--gradient-brand) !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: border-box !important;
+}
+
+.header-brand {
+  background: var(--gradient-brand) !important;
+  color: #FFFFFF !important;
+}
+
+.login-bg {
+  background: var(--gradient-brand) !important;
+}

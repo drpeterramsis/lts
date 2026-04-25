@@ -65,7 +65,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
       ) : (
         clusterNames.map(cluster => (
           <div key={cluster} className="w-full">
-            <h3 className="text-[var(--accent-color)] font-bold text-lg mb-4 border-b border-[var(--border-color)] pb-2">Cluster {cluster}</h3>
+            <h3 className="header-brand font-bold text-white text-lg mb-4 px-4 py-2 rounded-t-lg shadow-sm">Cluster {cluster}</h3>
             <div className="flex flex-wrap gap-4">
               {Object.entries(groupedData[cluster] as Record<string, Employee[]>).sort((a,b) => a[0].localeCompare(b[0])).map(([team, members]) => {
                 const teamMembers = members as Employee[];
@@ -77,8 +77,14 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                   <div
                     key={team}
                     onClick={() => isClickable && setSelectedTeam({ cluster, team, members: teamMembers })}
-                    className={`min-w-[220px] bg-[var(--bg-card)] border rounded-xl relative overflow-hidden transition-all ${isUserTable ? 'shadow-[0_0_20px_rgba(var(--accent-color-rgb),0.15)] cursor-pointer' : 'border-[var(--border-color)] hover:border-[var(--accent-color)]'}`}
-                    style={isUserTable ? { borderColor: teamColor } : {}}
+                    className={`min-w-[220px] bg-[var(--bg-card)] border rounded-xl relative overflow-hidden transition-all ${isUserTable ? 'cursor-pointer' : 'border-[var(--border-color)] hover:border-[var(--accent-color)]'}`}
+                    style={isUserTable ? { 
+                      border: '2px solid transparent', 
+                      backgroundImage: 'linear-gradient(var(--bg-card), var(--bg-card)), var(--gradient-brand)', 
+                      backgroundClip: 'padding-box, border-box', 
+                      backgroundOrigin: 'border-box', 
+                      boxShadow: '0 0 20px rgba(68, 78, 150, 0.25)' 
+                    } : {}}
                   >
                     <div className="h-2 w-full" style={{ backgroundColor: teamColor }}></div>
                     <div className="p-4">
@@ -97,7 +103,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                         {teamMembers.map((m, i) => {
                           const isCurrentUser = loggedInEmployee && m["Employee ID"] === loggedInEmployee["Employee ID"];
                           return (
-                            <div key={i} className={`flex flex-col mb-1 ${isCurrentUser ? 'text-[var(--accent-color)]' : ''}`}>
+                            <div key={m["Employee ID"] || i} className={`flex flex-col mb-1 ${isCurrentUser ? 'text-[var(--accent-color)]' : ''}`}>
                               <div className={`flex items-center gap-1.5 font-bold text-[13px] ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: teamColor } : {}}>
                                 {isCurrentUser && '★ '}
                                 {m.Name}
@@ -134,7 +140,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({ employees, loggedInEmplo
                 {selectedTeam.members.map((m, i) => {
                   const isCurrentUser = loggedInEmployee && m["Employee ID"] === loggedInEmployee["Employee ID"];
                   return (
-                    <div key={i} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
+                    <div key={m["Employee ID"] || i} className={`flex flex-col py-3 px-3 rounded-xl border transition-all ${isCurrentUser ? '' : 'bg-[var(--bg-main)] border-[var(--border-color)]'}`} style={isCurrentUser ? { backgroundColor: `${getTeamColor(selectedTeam.team)}15`, borderColor: `${getTeamColor(selectedTeam.team)}50` } : {}}>
                       <div className={`flex items-center gap-2 font-bold text-[15px] ${isCurrentUser ? '' : 'text-[var(--text-primary)]'}`} style={isCurrentUser ? { color: getTeamColor(selectedTeam.team) } : {}}>
                         👤 {isCurrentUser && '★ '}{m.Name}
                       </div>

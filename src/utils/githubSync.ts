@@ -86,31 +86,54 @@ export const saveToGitHub = async (
   }
 };
 
-export const fetchFromGitHub = async (): Promise<Employee[] | null> => {
+export const fetchFromGitHub = async (): Promise<{ data: Employee[] | null; error: string | null }> => {
   const token = import.meta.env.VITE_GITHUB_TOKEN;
   const repo = import.meta.env.VITE_GITHUB_REPO;
   const filePath = import.meta.env.VITE_GITHUB_FILE_PATH;
 
-  if (!token || !repo || !filePath) return null;
-
-  const apiUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+  let employees: Employee[] | null = null;
+  let fetchError: string | null = null;
 
   try {
-    const res = await fetch(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-      },
-    });
+    if (token && repo && filePath) {
+      const apiUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+      const res = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      // Decode base64 content
-      const content = decodeURIComponent(escape(atob(data.content)));
-      return JSON.parse(content);
+      if (res.ok) {
+        const data = await res.json();
+        const decoded = atob(data.content.replace(/\n/g, ''));
+        employees = JSON.parse(decoded);
+      } else {
+        fetchError = `GitHub API Error: ${res.status}`;
+      }
+    } else {
+      fetchError = "Missing GitHub environment variables.";
     }
   } catch (error) {
     console.error("❌ GitHub fetch error:", error);
+    fetchError = "Network error or failed to parse GitHub data.";
   }
-  return null;
+
+  // Fallback to local / public/data
+  if (!employees) {
+    try {
+      console.log("⚠️ Falling back to local data/employees_lts.json");
+      const localRes = await fetch('/data/employees_lts.json');
+      if (localRes.ok) {
+        employees = await localRes.json();
+        fetchError = null; // Clear error if local works
+      } else {
+        if (!fetchError) fetchError = "Could not load employees. Check GitHub token and file path.";
+      }
+    } catch (localError) {
+      if (!fetchError) fetchError = "Could not load employees. Check GitHub token and file path.";
+    }
+  }
+
+  return { data: employees, error: fetchError };
 };

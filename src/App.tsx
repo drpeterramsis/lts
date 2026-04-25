@@ -105,9 +105,14 @@ export default function App() {
     
     // Sync latest data from GitHub if available
     const syncData = async () => {
-      const latest = await fetchFromGitHub();
-      if (latest) {
-        setEmployees(latest);
+      const { data, error } = await fetchFromGitHub();
+      if (data) {
+        setEmployees(data);
+        if (data.length === 0) {
+          showToast('No employees found in data/employees_lts.json', 'error');
+        }
+      } else if (error) {
+        showToast(error, 'error');
       }
       setIsLoading(false);
     };
@@ -354,10 +359,17 @@ export default function App() {
     }
   };
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen login-bg flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 border-4 border-white/20 border-t-[#D579A4] rounded-full animate-spin shadow-lg"></div>
+        <p className="text-white font-bold tracking-widest text-sm animate-pulse">LOADING PROFILE DATA...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${!user ? 'login-bg' : ''}`}>
       {/* Universal Theme Toggle Moved logic - actually the MOD 3 and 4 refine this */}
       
       <AnimatePresence mode="wait">
@@ -372,22 +384,22 @@ export default function App() {
           >
             <div className="w-full max-w-sm space-y-8">
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-[var(--accent-color)] rounded-2xl mx-auto flex items-center justify-center shadow-xl shadow-[var(--accent-color)]/20 rotate-3">
-                  <Shield className="w-8 h-8 text-black" />
+                <div className="w-16 h-16 bg-white rounded-2xl mx-auto flex items-center justify-center shadow-xl rotate-3">
+                  <Shield className="w-8 h-8 text-[var(--color-indigo)]" />
                 </div>
-                <h1 className="text-3xl font-display font-black tracking-tight mt-6">Limitless Training</h1>
-                <p className="text-[var(--text-secondary)] font-medium">Simulation Management Portal</p>
+                <h1 className="text-3xl font-display font-black tracking-tight mt-6 gradient-text bg-white">Limitless Training</h1>
+                <p className="text-white/80 font-medium">Simulation Management Portal</p>
               </div>
 
-              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--accent-color)]" />
+              <div className="card-surface p-8 pb-10 relative overflow-hidden group border border-[var(--border-color)]">
+                <div className="absolute top-0 left-0 w-2 h-full header-brand" />
                 
                 <AnimatePresence mode="wait">
                   {loginStep === 1 ? (
                     <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                       <form onSubmit={handleStep1} className="space-y-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] ml-1">Employee Number</label>
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-dim-gray)] ml-1">Employee Number</label>
                           <input
                             type="text"
                             required
@@ -395,7 +407,7 @@ export default function App() {
                             onChange={(e) => setEmpNumber(e.target.value)}
                             placeholder="Enter Employee ID"
                             autoFocus
-                            className="w-full px-5 py-4 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl focus:ring-4 focus:ring-[var(--accent-color)]/10 focus:border-[var(--accent-color)] transition-all outline-none font-bold text-lg"
+                            className="w-full px-5 py-4 bg-white border border-[var(--border-color)] rounded-2xl input-ring transition-all outline-none font-bold text-lg text-[var(--text-primary)]"
                           />
                         </div>
                         {error && (
@@ -407,14 +419,14 @@ export default function App() {
                             {error}
                           </motion.p>
                         )}
-                        <button type="submit" className="w-full py-4 bg-[var(--accent-color)] text-black rounded-2xl font-black shadow-lg shadow-[var(--accent-color)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        <button type="submit" className="w-full py-4 btn-primary flex items-center justify-center gap-2">
                           CONTINUE <ArrowRight className="w-5 h-5" />
                         </button>
                         <a 
                           href="https://wa.me/201069996672?text=Hello%2C%20I'm%20contacting%20from%20Limitless%20SIM%20%F0%9F%91%8B%0AI%20cannot%20find%20my%20Employee%20ID.%0ACould%20you%20please%20help%20me%3F"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-center mt-3 text-[12px] text-[var(--accent-color)] underline decoration-dotted hover:opacity-80 hover:decoration-solid transition-all duration-200 cursor-pointer"
+                          className="block text-center mt-4 text-[12px] text-[var(--color-indigo)] underline decoration-dotted hover:opacity-80 hover:decoration-solid transition-all duration-200 cursor-pointer font-semibold"
                         >
                           💬 Can't find your ID? Click here
                         </a>
@@ -423,21 +435,21 @@ export default function App() {
                   ) : (
                     <motion.div key="s2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="text-center space-y-8">
                        <div className="space-y-4">
-                          <div className="w-20 h-20 bg-[var(--input-bg)] rounded-full mx-auto flex items-center justify-center text-[var(--accent-color)] border-4 border-[var(--border-color)]">
+                          <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center text-[var(--color-indigo)] border-4 border-[var(--border-color)]">
                              <UserIcon className="w-10 h-10" />
                           </div>
                           <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Identity Confirmation</p>
-                             <h2 className="text-2xl font-black leading-tight">{foundEmployee?.["Employee Name"]}</h2>
-                             <span className="inline-block px-3 py-1 bg-[var(--accent-color)]/10 text-[var(--accent-color)] rounded-lg text-[10px] font-black uppercase">{foundEmployee?.Unit}</span>
+                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-dim-gray)]">Identity Confirmation</p>
+                             <h2 className="text-2xl font-black leading-tight text-[var(--text-primary)]">{foundEmployee?.["Employee Name"]}</h2>
+                             <span className="inline-block px-3 py-1 bg-[var(--color-indigo)]/10 text-[var(--color-indigo)] rounded-lg text-[10px] font-black uppercase">{foundEmployee?.Unit}</span>
                           </div>
                           <p className="text-sm text-[var(--text-secondary)] font-medium">Is this you? Please confirm to continue.</p>
                        </div>
                        <div className="grid grid-cols-2 gap-3">
-                          <button onClick={confirmLogin} className="py-4 bg-[var(--accent-color)] text-black rounded-2xl font-black flex items-center justify-center gap-2 text-xs hover:bg-opacity-90">
+                          <button onClick={confirmLogin} className="py-4 btn-primary flex items-center justify-center gap-2 text-xs">
                              <CheckCircle2 className="w-4 h-4" /> YES, IT'S ME
                           </button>
-                          <button onClick={cancelLogin} className="py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-black flex items-center justify-center gap-2 text-xs hover:bg-red-500/20">
+                          <button onClick={cancelLogin} className="py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-black flex items-center justify-center gap-2 text-xs hover:bg-red-500/20">
                              <XCircle className="w-4 h-4" /> NO, WRONG ID
                           </button>
                        </div>
@@ -456,19 +468,83 @@ export default function App() {
             className="flex-1 flex flex-col"
           >
             {/* Header / Nav */}
-            <header className="sticky top-0 z-[100] bg-[var(--bg-main)] border-b border-[var(--border-color)]">
-               <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <h1 className="font-display font-black text-[var(--accent-color)] text-lg sm:text-xl whitespace-nowrap">
+            <header className="sticky top-0 z-[100] header-brand shadow-md">
+               <div className="max-w-6xl mx-auto px-4 h-[72px] flex items-center justify-between">
+                  <div className="flex items-center gap-6 h-full">
+                     <h1 className="font-display font-bold text-white text-lg sm:text-xl whitespace-nowrap pt-1">
                         <span className="hidden sm:inline">Limitless Training Simulation</span>
                         <span className="sm:hidden">LTS 2026</span>
                      </h1>
+                     
+                     {/* Nav Items */}
+                     <nav className="hidden sm:flex items-center h-full ml-4 space-x-2 pt-1">
+                       <button 
+                         onClick={() => setActiveTab('map')}
+                         className={`h-full px-4 text-sm font-bold flex items-center transition-all ${activeTab === 'map' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                       >
+                         Map
+                       </button>
+                       {(user.role === 'facilitator' || user.role === 'superuser') && (
+                         <>
+                           <button 
+                             onClick={() => setActiveTab('drill')}
+                             className={`h-full px-4 text-sm font-bold flex items-center transition-all ${activeTab === 'drill' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                           >
+                             Drill-Down
+                           </button>
+                           <button 
+                             onClick={() => setActiveTab('search')}
+                             className={`h-full px-4 text-sm font-bold flex items-center transition-all ${activeTab === 'search' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                           >
+                             Search
+                           </button>
+                           <button 
+                             onClick={() => setActiveTab('stats')}
+                             className={`h-full px-4 text-sm font-bold flex items-center transition-all ${activeTab === 'stats' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                           >
+                             Stats
+                           </button>
+                         </>
+                       )}
+                     </nav>
                   </div>
 
                   <div className="flex items-center gap-2">
                      <ThemeToggle theme={theme} onToggle={toggleTheme} />
                   </div>
                </div>
+               
+               {/* Mobile Nav */}
+               <nav className="sm:hidden flex items-center overflow-x-auto h-12 px-2 bg-black/10">
+                 <button 
+                   onClick={() => setActiveTab('map')}
+                   className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'map' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                 >
+                   Map
+                 </button>
+                 {(user.role === 'facilitator' || user.role === 'superuser') && (
+                   <>
+                     <button 
+                       onClick={() => setActiveTab('drill')}
+                       className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'drill' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                     >
+                       Drill-Down
+                     </button>
+                     <button 
+                       onClick={() => setActiveTab('search')}
+                       className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'search' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                     >
+                       Search
+                     </button>
+                     <button 
+                       onClick={() => setActiveTab('stats')}
+                       className={`h-full px-4 text-xs font-bold whitespace-nowrap flex items-center transition-all ${activeTab === 'stats' ? 'text-white border-b-[3px] border-[#D579A4]' : 'text-white/75 hover:text-white border-b-[3px] border-transparent'}`}
+                     >
+                       Stats
+                     </button>
+                   </>
+                 )}
+               </nav>
             </header>
 
             <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 space-y-8 pb-14">
@@ -489,19 +565,8 @@ export default function App() {
                   </div>
                   
                   {(user.role === 'superuser' || user.role === 'facilitator') && (
-                  <div className="flex bg-[var(--bg-card)] p-1 rounded-2xl border border-[var(--border-color)] shadow-sm self-start">
-                     <button 
-                        onClick={() => setActiveTab('drill')}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'drill' ? 'bg-[var(--accent-color)] text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                      >
-                        <BarChart3 className="w-4 h-4" /> DRILL-DOWN
-                     </button>
-                     <button 
-                        onClick={() => setActiveTab('search')}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'search' ? 'bg-[var(--accent-color)] text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                      >
-                        <SearchIcon className="w-4 h-4" /> SEARCH ENGINE
-                     </button>
+                  <div className="flex items-center gap-2">
+                     {/* Drill-down and Search removed from here since they are in the header nav now */}
                   </div>
                   )}
                </div>
@@ -582,38 +647,13 @@ export default function App() {
                {/* Feature Tabs */}
                {true && (
                    <div className="min-h-[400px]">
-                    <div className="mb-4 flex gap-3 flex-wrap">
-                      <button 
-                         onClick={() => setActiveTab('map')}
-                         className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${activeTab === 'map' ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--input-bg)] text-[var(--text-secondary)]'}`}
-                       >
-                         🗺️ Map
-                      </button>
+                    <div className="mb-4 flex gap-3 flex-wrap justify-end">
                       
                       {(user.role === 'facilitator' || user.role === 'superuser') && (
-                        <>
-                          <button 
-                             onClick={() => setActiveTab('drill')}
-                             className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${activeTab === 'drill' ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--input-bg)] text-[var(--text-secondary)]'}`}
-                           >
-                             📊 Drill-Down
-                          </button>
-                          <button 
-                             onClick={() => setActiveTab('search')}
-                             className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${activeTab === 'search' ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--input-bg)] text-[var(--text-secondary)]'}`}
-                           >
-                             🔍 Search Engine
-                          </button>
-                          <button 
-                             onClick={() => setActiveTab('stats')}
-                             className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${activeTab === 'stats' ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--input-bg)] text-[var(--text-secondary)]'}`}
-                           >
-                             📈 Stats
-                          </button>
                           <div className="flex gap-2">
                              <button 
                                onClick={openAddModal}
-                               className="flex items-center gap-2 px-[22px] py-[10px] bg-transparent border border-[var(--accent-color)] rounded-full text-[var(--accent-color)] font-display font-semibold text-[14px] hover:bg-[var(--accent-color)]/10 transition-all cursor-pointer"
+                               className="flex items-center gap-2 px-[22px] py-[10px] bg-transparent border border-[var(--color-indigo)] rounded-full text-[var(--color-indigo)] font-display font-semibold text-[14px] hover:bg-[var(--color-indigo)]/10 transition-all cursor-pointer"
                              >
                                <UserPlus className="w-4 h-4" /> + Add New Member
                              </button>
@@ -624,7 +664,6 @@ export default function App() {
                                🧹 Clean Duplicates
                              </button>
                           </div>
-                        </>
                       )}
                     </div>
                     <AnimatePresence mode="wait">
@@ -681,7 +720,7 @@ export default function App() {
           >
             {toast.type === 'success' && '✅ '}
             {toast.type === 'error' && '❌ '}
-            {toast.type === 'loading' && '⏳ '}
+            {toast.type === 'loading' && <div className="inline-block align-middle mr-2 mt-[-2px] w-3 h-3 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin"></div>}
             {toast.message}
           </motion.div>
         )}

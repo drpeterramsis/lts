@@ -53,8 +53,9 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
       {/* TOTAL EMPLOYEES CARD */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center relative overflow-hidden group transition-all hover:border-[var(--accent-color)]">
+          <div className="h-1.5 w-full header-brand absolute top-0 left-0 right-0" />
           <div className="absolute top-0 right-0 p-8 bg-[var(--accent-color)]/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-125" />
-          <p className="text-[var(--text-secondary)] text-[9px] uppercase tracking-[0.3em] font-black mb-1">System Records</p>
+          <p className="text-[var(--text-secondary)] text-[9px] uppercase tracking-[0.3em] font-black mb-1 mt-2">System Records</p>
           <p className="text-5xl font-black text-[var(--text-primary)] tracking-tighter">
             {employees.length}
           </p>
@@ -73,11 +74,11 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
           </thead>
           <tbody className="bg-[var(--bg-main)]">
             {waveSummary.map(w => (
-              <tr key={w.wave} onClick={() => setSelectedWaveId(w.wave)} className={`border-b border-[var(--border-color)] cursor-pointer ${selectedWaveId === w.wave ? 'bg-[var(--accent-purple)]/10 font-black text-[var(--accent-purple)]' : 'hover:bg-[var(--border-color)]/30'}`}>
-                <td className="p-2 font-bold text-[var(--text-primary)]">{w.wave}</td>
-                <td className="p-2 text-[var(--text-secondary)]">{w.members}</td>
-                <td className="p-2 text-[var(--text-secondary)]">{w.clusters}</td>
-                <td className="p-2 text-[var(--text-secondary)]">{w.teams}</td>
+              <tr key={w.wave} onClick={() => setSelectedWaveId(w.wave)} className={`border-b border-[var(--border-color)] cursor-pointer ${selectedWaveId === w.wave ? 'header-brand font-black text-white' : 'hover:bg-[var(--border-color)]/30'}`}>
+                <td className={`p-2 font-bold ${selectedWaveId === w.wave ? 'text-white' : 'text-[var(--text-primary)]'}`}>{w.wave}</td>
+                <td className={`p-2 ${selectedWaveId === w.wave ? 'text-white/90' : 'text-[var(--text-secondary)]'}`}>{w.members}</td>
+                <td className={`p-2 ${selectedWaveId === w.wave ? 'text-white/90' : 'text-[var(--text-secondary)]'}`}>{w.clusters}</td>
+                <td className={`p-2 ${selectedWaveId === w.wave ? 'text-white/90' : 'text-[var(--text-secondary)]'}`}>{w.teams}</td>
               </tr>
             ))}
           </tbody>
@@ -89,8 +90,8 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
         <div className="pt-4 border-t border-[var(--border-color)] space-y-6">
           <h3 className="font-bold text-lg mb-4 text-[var(--text-primary)]">Breakdown: Wave {selectedWaveId}</h3>
           {Object.entries(breakdownData).sort((a, b) => a[0].localeCompare(b[0], undefined, {numeric: true})).map(([k, teams]) => (
-            <div key={k} className="border border-[var(--border-color)] rounded-lg overflow-hidden">
-               <div className="bg-[var(--border-color)] p-2 font-bold text-[var(--accent-color)] border-b border-[var(--border-color)]">Cluster {k}</div>
+            <div key={k} className="border border-[var(--border-color)] rounded-lg overflow-hidden relative">
+               <div className="header-brand p-2 font-bold text-white border-b border-[var(--border-color)] shadow-sm">Cluster {k}</div>
                <table className="w-full text-left bg-[var(--bg-card)]">
                   <thead className="text-[var(--accent-color)] border-b border-[var(--border-color)] bg-[var(--border-color)] text-xs uppercase">
                     <tr><th className="p-2">Team</th><th className="p-2">Members</th></tr>
