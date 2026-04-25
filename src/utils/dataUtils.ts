@@ -1,3 +1,5 @@
+import { Employee } from '../types';
+
 export const getTeamColor = (team: string): string => {
     const map: Record<string, string> = {
       "A": "#0C488A",   // Royal Blue
@@ -20,7 +22,7 @@ export const getClusterLabel = (cluster: string): string => {
     return cluster;
 };
 
-export function sortMembersAZ(list: any[]) {
+export function sortMembersAZ(list: Employee[]) {
   return [...(list || [])].sort((a, b) => {
     const an = String(a?.name || "").trim().toLowerCase();
     const bn = String(b?.name || "").trim().toLowerCase();

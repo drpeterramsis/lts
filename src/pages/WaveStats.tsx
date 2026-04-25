@@ -3,7 +3,7 @@ import { Employee } from '../types';
 import { Pencil, Trash2, ArrowRightLeft } from 'lucide-react';
 import { getTeamColor } from '../components/SearchEngine';
 import { sk } from '../utils/safeKey';
-import { WAVE_1, WAVE_2, UNIQUE_TEAMS, WAVE_LABELS, matchWave } from '../constants/waves';
+import { WAVE_1, WAVE_2, TEAM_ORDER, WAVE_LABELS, matchWave } from '../constants/waves';
 import { parseWave } from '../utils/wave';
 import { sortMembersAZ } from '../utils/dataUtils';
 
@@ -115,7 +115,7 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
                     <div key={sk("wvcl", wi, cluster)} className="statsClusterRow flex items-center gap-4 group hover:bg-gray-50/50 p-2 rounded-xl transition-all">
                       <span className="statsClusterLabel w-24 shrink-0 text-[13px] font-bold text-[#7A3A94] whitespace-nowrap">Cluster {cluster}</span>
                     <div className="statsChipsRow flex-1 flex gap-2">
-                       {UNIQUE_TEAMS.map(team => {
+                       {TEAM_ORDER.map(team => {
                          const members = clusterTeams[team] || [];
                          const teamColors: Record<string, any> = {
                            A: { bg: 'rgba(12,72,138,0.12)', border: 'rgba(12,72,138,0.35)', text: '#0C488A', emoji: '🔵' },
@@ -260,7 +260,7 @@ export const WaveStats: React.FC<WaveStatsProps> = ({ employees, userRole, onEdi
                       onChange={e => setTransferTarget({...transferTarget, team: e.target.value})}
                       className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-bold outline-none"
                     >
-                      {UNIQUE_TEAMS.map(t => <option key={sk("movetm", t)} value={t}>{t}</option>)}
+                      {TEAM_ORDER.map(t => <option key={sk("movetm", t)} value={t}>{t}</option>)}
                     </select>
                   </div>
                 </div>

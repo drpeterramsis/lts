@@ -26,7 +26,8 @@ import { WaveStats } from './pages/WaveStats';
 import { parseWave } from './utils/wave';
 import { can } from './utils/rbac';
 import { sk } from './utils/safeKey';
-import { WAVE_1, WAVE_2, WAVE_LABELS, UNIQUE_TEAMS } from './constants/waves';
+import { WAVE_1, WAVE_2, WAVE_LABELS, TEAM_ORDER } from './constants/waves';
+import { sortMembersAZ } from './utils/dataUtils';
 
 // Data and Types
 import type { Employee } from './types';
@@ -883,7 +884,7 @@ export default function App() {
                   className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-lg px-3.5 py-2.5 font-display text-[14px] focus:border-[var(--accent-color)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-color)]/10"
                 >
                   <option value="">Select Team...</option>
-                  {UNIQUE_TEAMS.map(t => {
+                  {TEAM_ORDER.map(t => {
                     const { teams } = getCounts(formData.wave || WAVE_1, formData.cluster);
                     return <option key={sk("opt-tm", t)} value={t}>{`${t} (${teams[t] || 0})`}</option>
                   })}
@@ -953,7 +954,7 @@ export default function App() {
                       onChange={e => setTransferData({...transferData, team: e.target.value})}
                       className="w-full p-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl font-bold outline-none text-[var(--text-primary)]"
                     >
-                      {UNIQUE_TEAMS.map(t => {
+                  {TEAM_ORDER.map(t => {
                         const { teams } = getCounts(transferData.wave, transferData.cluster);
                         return <option key={sk("movetm", t)} value={t}>{`${t} (${teams[t] || 0})`}</option>
                       })}
@@ -984,8 +985,8 @@ export default function App() {
               Delete Member?
             </h2>
             <div className="my-3">
-              <span className="font-bold text-[var(--accent-color)]">{deletingMember.Name}</span><br />
-              <span className="text-[13px] text-[var(--text-secondary)]">(ID: {deletingMember["Employee ID"]})</span>
+              <span className="font-bold text-[var(--accent-color)]">{deletingMember.name}</span><br />
+              <span className="text-[13px] text-[var(--text-secondary)]">(ID: {deletingMember.id})</span>
             </div>
             <p className="text-[13px] text-[var(--text-secondary)] mb-6 whitespace-pre-line">
               This action cannot be undone.{"\n"}The member will be permanently removed from the system.
@@ -1057,7 +1058,7 @@ export default function App() {
                   <div key={id} className="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-main)]">
                      <h3 className="text-[12px] font-bold text-[var(--accent-color)] mb-3">ID: {id} — {group.length} copies found</h3>
                      <div className="space-y-2">
-                        {group.map((emp, idx) => {
+                        {sortMembersAZ(group).map((emp, idx) => {
                            const isSelected = duplicateSelections[id] === idx;
                            return (
                              <div 
@@ -1070,13 +1071,13 @@ export default function App() {
                                </div>
                                <div className="flex-1">
                                   <div className="font-bold text-[14px] text-[var(--text-primary)]">
-                                    {emp.Name}
+                                    {emp.name}
                                   </div>
                                   <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                                    {emp.Email}
+                                    {emp.email}
                                   </div>
                                   <div className="text-[11px] text-[var(--text-secondary)]">
-                                    {emp.Wave} • 🏰 {emp.Cluster} • {emp.Team}
+                                    {emp.wave} • 🏰 {emp.cluster} • {emp.team}
                                   </div>
                                </div>
                                <div className="text-[10px] text-[var(--text-secondary)] bg-[var(--input-bg)] rounded px-2 py-0.5 flex-shrink-0">

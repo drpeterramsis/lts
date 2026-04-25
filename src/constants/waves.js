@@ -6,7 +6,8 @@ export const WAVE_LABELS = {
   [WAVE_2]: "Wave 2 — 27 Apr 12:30 PM - 02:30 PM",
 };
 
-export const UNIQUE_TEAMS = ["A", "B", "C", "D"];
+export const TEAM_ORDER = ["A", "B", "C", "D"];
+export const UNIQUE_TEAMS = TEAM_ORDER;
 
 export function normalizeWave(rawWave) {
   const s = String(rawWave ?? "").toLowerCase();

@@ -43,6 +43,7 @@ The application syncs its database directly with a GitHub repository for a simpl
 4. Token needs Contents: Read & Write permission
 
 ## Version History
+v2.0.024 - Fixed: App.tsx property names (name/id/email etc) and unified TEAM_ORDER constant usage to ensure consistent data rendering.
 v2.0.023 - Fixed team order A-B-C-D in Map seating grid
            Sorted all member lists alphabetically A-Z
 v2.0.022 - Facilitator map cluster labels now use emoji instead of brackets for totals

@@ -4,7 +4,7 @@ import { MapPin, Pencil, ArrowRightLeft, Trash2, UserPlus } from 'lucide-react';
 import { Employee } from '../types';
 import { getTeamColor } from './SearchEngine';
 import { sk } from '../utils/safeKey';
-import { WAVE_1, WAVE_2, UNIQUE_TEAMS, WAVE_LABELS, matchWave } from '../constants/waves';
+import { WAVE_1, WAVE_2, TEAM_ORDER, WAVE_LABELS, matchWave } from '../constants/waves';
 import { sortMembersAZ } from '../utils/dataUtils';
 import { parseWave } from '../utils/wave';
 
@@ -112,7 +112,7 @@ export const SeatingMap: React.FC<SeatingMapProps> = ({
       const existingTables = clusterGroups[cluster];
       const orderedTables: typeof existingTables = [];
       
-      UNIQUE_TEAMS.forEach(team => {
+      TEAM_ORDER.forEach(team => {
         const found = existingTables.find(t => t.team === team);
         if (found) {
           orderedTables.push(found);
