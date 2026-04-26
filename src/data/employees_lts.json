@@ -3059,16 +3059,24 @@
     "id": "100230",
     "name": "Amr Magdy Mahmoud",
     "email": "Amr.magdy@evapharma.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "C",
     "cluster": "5",
-    "team": "C"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
   },
   {
     "id": "6173",
     "name": "Samuel Wahba",
     "email": "Samuel.wahba@evapharma.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "C",
     "cluster": "6",
-    "team": "C"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
+  },
+  {
+    "id": "500240",
+    "name": "Michael Emad Samaan",
+    "email": "Michael.Samaan@limitlessnaturals.com",
+    "wave": "27 April ⏰ 09:30 AM - 11:30 AM",
+    "cluster": "1",
+    "team": "A"
   }
 ]
