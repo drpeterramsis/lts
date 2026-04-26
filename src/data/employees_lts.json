@@ -3033,18 +3033,26 @@
   },
   {
     "id": "500250",
-    "name": "Mahmoud Hany Hasan  ",
+    "name": "Mahmoud Hany Hasan",
     "email": "Mahmoud.Hany@limitlessnaturals.com",
-    "wave": "27 April ⏰ 09:30 AM - 11:30 AM",
+    "team": "A",
     "cluster": "3",
-    "team": "A"
+    "wave": "27 April ⏰ 09:30 AM - 11:30 AM"
   },
   {
     "id": "5423",
     "name": "Mena Danial",
     "email": "Mena.danial@evapharma.com",
-    "wave": "27 April ⏰ 09:30 AM - 11:30 AM",
+    "team": "B",
     "cluster": "4",
-    "team": "B"
+    "wave": "27 April ⏰ 09:30 AM - 11:30 AM"
+  },
+  {
+    "id": "500101",
+    "name": "Marina Adel",
+    "email": "marina.adel@evapharma.com",
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "cluster": "4",
+    "team": "D"
   }
 ]
