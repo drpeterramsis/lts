@@ -3027,8 +3027,16 @@
     "id": "500249",
     "name": "Walid nessim eissa",
     "email": "Walid.Nessim@limitlessnaturals.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "D",
     "cluster": "3",
-    "team": "D"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
+  },
+  {
+    "id": "500250",
+    "name": "Mahmoud Hany Hasan  ",
+    "email": "Mahmoud.Hany@limitlessnaturals.com",
+    "wave": "27 April ⏰ 09:30 AM - 11:30 AM",
+    "cluster": "3",
+    "team": "A"
   }
 ]
