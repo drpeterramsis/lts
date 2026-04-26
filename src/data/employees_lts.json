@@ -3107,23 +3107,31 @@
     "id": "500244",
     "name": "Sedky naeem ghali",
     "email": "Sedky.Naeem@limitlessnaturals.com",
-    "wave": "27 April ⏰ 09:30 AM - 11:30 AM",
+    "team": "C",
     "cluster": "3",
-    "team": "C"
+    "wave": "27 April ⏰ 09:30 AM - 11:30 AM"
   },
   {
     "id": "500239",
     "name": "Abanoub atef ibrahem",
     "email": "Abanoub.Iskander@limitlessnaturals.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "A",
     "cluster": "1",
-    "team": "A"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
   },
   {
     "id": "500166",
     "name": "Amira Khalil",
     "email": "Amira.ahmed@evapharma.com",
-    "wave": "27 April ⏰ 09:30 AM - 11:30 AM",
+    "team": "D",
+    "cluster": "4",
+    "wave": "27 April ⏰ 09:30 AM - 11:30 AM"
+  },
+  {
+    "id": "500219",
+    "name": "Amir Mouness",
+    "email": "Amir.moanes@limitlessnaturals.com",
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
     "cluster": "4",
     "team": "D"
   }
