@@ -3051,8 +3051,16 @@
     "id": "500101",
     "name": "Marina Adel",
     "email": "marina.adel@evapharma.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "D",
     "cluster": "4",
-    "team": "D"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
+  },
+  {
+    "id": "100230",
+    "name": "Amr Magdy Mahmoud",
+    "email": "Amr.magdy@evapharma.com",
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "cluster": "5",
+    "team": "C"
   }
 ]
