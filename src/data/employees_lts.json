@@ -3137,10 +3137,18 @@
   },
   {
     "id": "500247",
-    "name": "Mostafa Ashraf ",
+    "name": "Mostafa Ashraf",
     "email": "Mostafa.Ashraf@limitlessnaturals.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "A",
     "cluster": "6",
-    "team": "A"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
+  },
+  {
+    "id": "500245",
+    "name": "Fady fared marzouk ",
+    "email": "Fady.marzouk@limitlessnaturals.com",
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "cluster": "5",
+    "team": "D"
   }
 ]
