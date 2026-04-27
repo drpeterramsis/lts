@@ -3131,8 +3131,16 @@
     "id": "500219",
     "name": "Amir Mouness",
     "email": "Amir.moanes@limitlessnaturals.com",
-    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "team": "D",
     "cluster": "4",
-    "team": "D"
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM"
+  },
+  {
+    "id": "500247",
+    "name": "Mostafa Ashraf ",
+    "email": "Mostafa.Ashraf@limitlessnaturals.com",
+    "wave": "27 April ⏰ 12:30 PM - 02:30 PM",
+    "cluster": "6",
+    "team": "A"
   }
 ]
